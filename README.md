@@ -1,4 +1,4 @@
-# E2E Automation Test
+# WebNN Samples Test Framework
 
 An automation test framework for testing [W3C WebNN Samples](https://github.com/webmachinelearning/webnn-samples) and [Microsoft WebNN Demos](https://microsoft.github.io/webnn-developer-preview/).
 
