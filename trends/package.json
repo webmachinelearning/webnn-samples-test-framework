@@ -1,0 +1,12 @@
+{
+  "name": "sample-test-trends",
+  "version": "1.0.0",
+  "description": "The web page to display the test results trends.",
+  "scripts": {
+    "predev": "node ./script/prepare-data.js",
+    "dev": "npx http-server"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}

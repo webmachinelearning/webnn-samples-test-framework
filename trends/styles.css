@@ -1,0 +1,35 @@
+[v-cloak] {
+  display: none;
+}
+
+body {
+  padding-top: 20px;
+}
+
+.ui.table thead tr {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+}
+
+.ui.table td,
+.ui.table th {
+  text-align: center !important;
+}
+
+.ui.table th:first-child,
+.ui.table th:last-child,
+.ui.table td:first-child,
+.ui.table td:last-child {
+  text-align: left !important;
+}
+
+td.chart-cell {
+  padding: 0 !important;
+}
+
+.echarts {
+  width: 400px;
+  height: 60px;
+}
