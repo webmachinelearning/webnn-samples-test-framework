@@ -194,7 +194,7 @@ async function switchSampleTest() {
                 );
 
                 // compare canvas to expected canvas
-                const expectedCanvasPath = `${expectedCanvas}/${_sample}_${example}_output.png`;
+                const expectedCanvasPath = `${expectedCanvas}/fast-style-transfer/${_sample}_${example}_output.png`;
                 compareImagesResults = util.compareImages(saveCanvasResult.canvasPath, expectedCanvasPath);
               } catch (error) {
                 console.log(error);

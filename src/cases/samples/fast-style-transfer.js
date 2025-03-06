@@ -9,7 +9,7 @@ async function fastStyleTransferTest({ backend, dataType, model } = {}) {
   const source = "samples";
   const sample = "fastStyleTransfer";
   const results = {};
-  const expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas");
+  const expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas/fast-style-transfer");
 
   const testExecution = async (backend, dataType, model) => {
     if (!["cpu", "gpu", "npu"].includes(backend)) {
