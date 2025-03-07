@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>WebNN Sample Trends</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+      integrity="sha512-KXol4x3sVoO+8ZsWPFI/r5KBVB/ssCGB5tsv2nVOKwLg33wTFP3fmnXa47FdSVIshVTgsYk/1734xSk9aFIa4A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="styles.css?v=20241017" />
+  </head>
+
+  <body>
+    <div id="vue-root" class="ui container" style="width: 1500px" v-cloak>
+      <h3 style="display: inline-block; padding-right: 22px">WebNN Sample Test Trends</h3>
+
+      <div>
+        <div v-if="deviceInfo" style="display: inline-block; margin-bottom: 11px; width: 100%">
+          <div style="display: flex; align-items: center; margin-bottom: 8px">
+            <strong>Host:</strong>
+            <select class="ui dropdown" @change="onSelectChange($event)" v-model="host" style="margin: 0 12px">
+              <option v-for="(host, index) in availableHosts" :key="host" :value="host">{{ host }}</option>
+            </select>
+
+            <span style="margin-left: auto">Displaying last</span>
+            <div class="ui input" style="width: 75px; margin: 0 6px">
+              <input id="input-duration" type="number" @change="onInputChange($event)" :value="duration" />
+            </div>
+            <span>days</span>
+          </div>
+
+          <div style="border: 1px solid #ddd; padding: 10px; border-radius: 6px; background: #f9f9f9">
+            <div style="display: flex; flex-wrap: wrap; margin-left: 10px; line-height: 1.8">
+              <div v-if="deviceInfo.browser" style="flex: 1; min-width: 500px">
+                <strong>Browser:</strong> {{ deviceInfo.browser }}
+              </div>
+              <div v-if="deviceInfo.cpuName" style="flex: 1; min-width: 500px">
+                <strong>CPU:</strong> {{ deviceInfo.cpuName }}
+              </div>
+              <div v-if="deviceInfo.gpuName" style="flex: 1; min-width: 500px">
+                <strong>GPU:</strong> {{ deviceInfo.gpuName }}
+              </div>
+              <div v-if="deviceInfo.npuName" style="flex: 1; min-width: 500px">
+                <strong>NPU:</strong> {{ deviceInfo.npuName }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-for="group in filterKeys" style="margin-bottom: 11px">
+        <div
+          v-for="filter in group"
+          :key="filter"
+          :class="{ ui: true, label: true, grey: filterWhitelist[filter] }"
+          @click="onFilterChange($event, filter)"
+          style="cursor: pointer; user-select: none"
+        >
+          {{ filter }}
+        </div>
+      </div>
+      <div v-if="!wholeData">Please wait...</div>
+      <table v-else class="ui table">
+        <thead>
+          <tr>
+            <th>Demo</th>
+            <th>Backend</th>
+            <th>Measure</th>
+            <th>{{ duration }} days ago</th>
+            <th>{{ duration }}-day<br />avg ± stdDev</th>
+            <th>Today<br />{{ keys.slice(-1)[0] }}</th>
+            <th
+              style="min-width: 90px; padding-left: 0; padding-right: 0; user-select: none; cursor: pointer"
+              :title="{
+                            'z-score': 'z = (x - μ) / σ',
+                            'average': `Today compared to ${duration}-day average`,
+                            'before': `Today compared to ${duration} days ago`,
+                        }[changeType]"
+              @click="onChangeTypeChange"
+            >
+              Change<br /><i class="caret left icon"></i>{{ changeType }}<i class="caret right icon"></i>
+            </th>
+            <th>Trends</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item of data" :key="item.rawKey">
+            <td v-if="item.alias" colspan="3">{{ item.alias }}</td>
+            <td v-if="!item.alias">{{ item.key[0] }}<br /><strong>{{ item.key[1] }}</strong></td>
+            <td v-if="!item.alias">{{ item.key[2] }}</td>
+            <td v-if="!item.alias">{{ item.key.slice(3).join('.') }}</td>
+            <td :title="item.start">{{ formatter(item.start, item.type) }}</td>
+            <td v-if="item.stdDev">
+              <span :title="item.average">{{ formatter(item.average, item.type) }}</span>
+              ±
+              <span :title="item.stdDev">{{ Math.round(item.stdDev / item.average * 100) }}%</span>
+            </td>
+            <td v-else :title="item.average">{{ formatter(item.average, item.type) }}</td>
+            <td :title="item.current">{{ formatter(item.current, item.type) }}</td>
+            <td v-if="item.type == 'category'">+{{ item.change }}</td>
+            <td v-else :style="{ backgroundColor: item.change[changeType]?.background }">
+              {{ item.change[changeType]?.value[0] !== '-' ? '+' + item.change[changeType]?.value :
+              item.change[changeType]?.value }}
+            </td>
+            <td class="chart-cell">
+              <v-chart :option="toEChartsOptions(item)"></v-chart>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-echarts@6"></script>
+    <script src="trends.js?v=20241030" type="module"></script>
+  </body>
+</html>

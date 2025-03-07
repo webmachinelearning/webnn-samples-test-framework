@@ -1,0 +1,24 @@
+{
+  "name": "sample-test",
+  "version": "1.0.0",
+  "description": "sample-test is an auto test framework.",
+  "main": "./src/main.js",
+  "scripts": {
+    "format": "prettier --log-level log --write \"./**/*.js\"",
+    "test": "npm run clean && node ./src/main.js",
+    "clean": "rm -rf ./out",
+    "generate-config": "node generate-config.js"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "canvas": "^3.0.1",
+    "dayjs": "^1.11.10",
+    "lodash": "^4.17.21",
+    "nodemailer": "^6.9.13",
+    "prettier": "^3.2.5",
+    "puppeteer": "^23.0.2",
+    "systeminformation": "^5.22.7",
+    "yargs": "^17.7.2"
+  },
+  "type": "commonjs"
+}
