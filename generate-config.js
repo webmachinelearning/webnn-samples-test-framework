@@ -218,23 +218,26 @@ const ORIGINAL_CONFIG = {
   developerPreview: {
     stableDiffusion15: {
       gpu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
+      npu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
       rounds: 2,
       urlArgs: {
-        gpu: "",
-        npu: ""
+        gpu: "?devicetype=gpu",
+        npu: "?devicetype=npu"
       }
     },
     stableDiffusionTurbo: {
       gpu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
+      npu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
       rounds: 2,
       urlArgs: {
-        gpu: "",
-        npu: ""
+        gpu: "?devicetype=gpu",
+        npu: "?devicetype=npu"
       }
     },
     segmentAnything: {
       gpu: { fp16: ["encoder", "decoder"] },
-      urlArgs: { gpu: "", npu: "" },
+      npu: { fp16: ["encoder", "decoder"] },
+      urlArgs: { gpu: "?devicetype=gpu", npu: "?devicetype=npu" },
       imageSpot: {
         x: 0.5,
         y: 0.5
