@@ -41,12 +41,12 @@ function formatResultsAsHTMLTable(data) {
   ];
 
   const memoryMetrics = [
-    "memoryRendererBefore",
-    "memoryRendererAfter",
-    "memoryRendererPeak",
-    "memoryGpuBefore",
-    "memoryGpuAfter",
-    "memoryGpuPeak"
+    "privateMemoryRendererBefore",
+    "privateMemoryRendererAfter",
+    "privateMemoryRendererPeak",
+    "privateMemoryGpuBefore",
+    "privateMemoryGpuAfter",
+    "privateMemoryGpuPeak"
   ];
 
   const performanceData = {};
