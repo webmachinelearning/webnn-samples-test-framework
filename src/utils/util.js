@@ -228,11 +228,17 @@ async function saveScreenshot(page, filename) {
   const screenshotDir = `${outDir}/${timestamp}/screenshots`;
   ensureDir(screenshotDir);
   // save page as image
-  await page.screenshot({
-    path: `${screenshotDir}/${filename}_${timestampMinute}.png`,
-    type: "png"
-  });
-  console.log("screenshot has been saved in " + screenshotDir);
+  await page
+    .screenshot({
+      path: `${screenshotDir}/${filename}_${timestampMinute}.png`,
+      type: "png"
+    })
+    .then(() => {
+      console.log("Screenshot saved in " + screenshotDir);
+    })
+    .catch((error) => {
+      console.error("Screenshot failed.", error);
+    });
 }
 
 async function saveCanvasImage(page, canvas_element, filename) {
