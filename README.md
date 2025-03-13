@@ -7,7 +7,7 @@ An automation test framework for testing [W3C WebNN Samples](https://github.com/
 Install GPU and NPU drivers, prepare test enviroment with DirectML.dll of target version (such as 1.15.2).
 
 ```sh
-copy DirectML.dll "LOCALAPPDATA\Google\Chrome SxS\Application\130.0.6715.0\"
+copy DirectML.dll "%LOCALAPPDATA%\Google\Chrome SxS\Application\130.0.6715.0\"
 ```
 
 Please refer to [WebNN Installation Guides](https://github.com/webmachinelearning/webnn-samples#webnn-installation-guides) for more details.
