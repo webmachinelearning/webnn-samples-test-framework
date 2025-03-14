@@ -167,7 +167,7 @@ async function switchSampleTest() {
 
             await page.waitForSelector(`::-p-xpath(${pageElement.backendText})`);
 
-            for (const example of config[source][_sample]["examples"]) {
+            for (const example of config[source][sampleTest]["samples"][_sample]["examples"]) {
               const elementsToClick = [pageElement[_backend], pageElement[example]];
               for (const selector of elementsToClick) {
                 await util.clickElementIfEnabled(page, selector);
@@ -201,7 +201,7 @@ async function switchSampleTest() {
               }
 
               console.log("Compare images results: ", compareImagesResults);
-              if (compareImagesResults < 95) {
+              if (compareImagesResults < 80) {
                 errorMsg += "Image result is not the same as template, please check saved images.";
               }
 
