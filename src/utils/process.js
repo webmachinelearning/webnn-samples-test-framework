@@ -86,7 +86,7 @@ function processInfo(id) {
 function getRendererProcessInfo(browserProcess) {
   if (os.platform() === "win32") {
     let stdout = childProcess.execSync(
-      `Get-WmiObject -Class Win32_Process -Filter "Name='${browserProcess}'" | Select-Object ProcessId,CommandLine`,
+      `Get-WmiObject -Class Win32_Process -Filter "Name='${browserProcess}'" | Select-Object ProcessId,CommandLine | Format-Table -Wrap -Property *`,
       { shell: "powershell" }
     );
     let rendererProcesses = stdout
@@ -130,7 +130,7 @@ function getRendererProcessInfo(browserProcess) {
 function getGpuProcessInfo(browserProcess) {
   if (os.platform() === "win32") {
     let stdout = childProcess.execSync(
-      `Get-WmiObject -Class Win32_Process -Filter "Name='${browserProcess}'" | Select-Object ProcessId,CommandLine`,
+      `Get-WmiObject -Class Win32_Process -Filter "Name='${browserProcess}'" | Select-Object ProcessId,CommandLine | Format-Table -Wrap -Property *`,
       { shell: "powershell" }
     );
     let gpuProcess = stdout
