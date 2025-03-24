@@ -95,7 +95,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     const type = "repeatInference";
     const testRounds = 5;
     console.log(`Repeat Inference in one page ${source} ${sample} ${backend} ${model} testing...`);
-    const screenshotFilename = `repeatInference_${source}_${sample}_${backend}_${dataType}_${model}`;
+    const screenshotFilename = `${source}_${type}_${sample}_${backend}_${dataType}_${model}`;
     const args = util.getBrowserArgs(backend);
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     let errorMsg = "";
@@ -156,7 +156,6 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     const type = "switchBackendNModel";
     const args = util.getBrowserArgs();
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -164,22 +163,21 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
       browser = await launchBrowser(args, browserPath, userDataDir);
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
+      await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}`, {
+        waitUntil: "networkidle0"
+      });
 
       for (let _backend in config[source][sample]) {
-        if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
+        if (!["gpu", "npu"].includes(_backend)) continue;
         for (let _dataType in config[source][sample][_backend]) {
           for (let _model of config[source][sample][_backend][_dataType]) {
             console.log(`${type} ${source} ${sample} ${_backend} ${_dataType} ${_model} testing...`);
             const screenshotFilename = `${source}_${type}_${sample}_${_backend}_${_dataType}_${_model}`;
-
+            let errorMsg = "";
             try {
-              const urlArguments = `${config[source][sample].urlArgs[_backend]}${config[source][sample].urlArgs[_model]}`;
-              await page.goto(
-                `${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}${urlArguments}`,
-                {
-                  waitUntil: "networkidle0"
-                }
-              );
+              await page.click(pageElement[_backend]);
+              await page.click(pageElement[_model]);
+
               await util.waitForElementEnabled(page, pageElement.classifyButton);
               await page.click(pageElement.classifyButton);
               await page.waitForSelector(pageElement.result, { visible: true });
@@ -202,7 +200,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
             } finally {
               _.set(
                 results,
-                [type + "_" + sample, _backend, _dataType, model, "error"],
+                [type + "_" + sample, _backend, _dataType, _model, "error"],
                 errorMsg.substring(0, config.errorMsgMaxLength)
               );
             }
@@ -235,7 +233,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     await testExecution(backend, dataType, model);
   } else {
     for (let _backend in config[source][sample]) {
-      if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
+      if (!["gpu", "npu"].includes(_backend)) continue;
       for (let _dataType in config[source][sample][_backend]) {
         for (let _model of config[source][sample][_backend][_dataType]) {
           await testExecution(_backend, _dataType, _model);
@@ -246,7 +244,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
 
   // 1. loop to open new page for each test but classify multiple times (5 times currently)
   for (let _backend in config[source][sample]) {
-    if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
+    if (!["gpu", "npu"].includes(_backend)) continue;
     for (let _dataType in config[source][sample][_backend]) {
       for (let _model of config[source][sample][_backend][_dataType]) {
         await repeatInferenceInOnePage(_backend, _dataType, _model);
