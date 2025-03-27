@@ -330,7 +330,7 @@ ${deviceInfoMdTableRows.map((row) => `| ${row.join(" | ")} |`).join("\n")}
   const performanceMdTableRows = Object.entries(performanceData).map(([variable, item]) => {
     const row = [escapeMarkdown(variable)];
     metrics.forEach((metric) => {
-      row.push(item[metric] ? item[metric].toString().replace(/,/g, " | ") : "-");
+      row.push(item[metric] ? escapeMarkdown(item[metric].toString().replace(/,/g, " | ")) : "-");
     });
     return row;
   });

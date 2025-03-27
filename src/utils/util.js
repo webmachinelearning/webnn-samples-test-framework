@@ -696,7 +696,7 @@ Options:
   // If any updates were made, update config and write back to file
   if (Object.keys(updates).length > 0) {
     Object.assign(config, updates);
-    fs.writeFileSync(path.join(__dirname, "..", "config.json"), JSON.stringify(config, null, 2), "utf-8");
+    fs.writeFileSync(path.join(__dirname, "..", "..", "config.json"), JSON.stringify(config, null, 2), "utf-8");
   }
 }
 

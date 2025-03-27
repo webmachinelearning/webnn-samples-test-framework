@@ -5,8 +5,8 @@
   "main": "./src/main.js",
   "scripts": {
     "format": "prettier --log-level log --write \"./**/*.js\"",
-    "test": "npm run clean && node ./src/main.js",
-    "clean": "rm -rf ./out",
+    "test": "node ./src/main.js",
+    "clean": "node ./scripts/clean",
     "generate-config": "node generate-config.js"
   },
   "license": "Apache-2.0",

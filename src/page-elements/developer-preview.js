@@ -88,6 +88,12 @@ const pageElements = {
     latency: "#latency"
   },
   imageClassification: {
+    alertWaring: "#info",
+    gpu: "#webnn_gpu",
+    npu: "#webnn_npu",
+    mobileNetV2: "#mobilenet-v2",
+    resNet50: "#resnet-50",
+    efficientNetLite4: "#efficientnet-lite4",
     classifyButton: "#classify-image",
     median: "#median",
     first: "#first",
