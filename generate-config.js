@@ -284,7 +284,7 @@ Options:
 `;
 
 const validDevices = ["cpu", "npu", "gpu"];
-const validBrowsers = ["chrome_canary", "edge_canary", "chrome_beta", "chrome_dev", "chrome_stable", "edge_canary"];
+const validBrowsers = ["chrome_canary", "chrome_dev", "chrome_beta", "chrome_stable", "edge_canary"];
 
 if (process.argv.length === 3 && (process.argv[2] === "--help" || process.argv[2] === "-h")) {
   console.log(HELP_MESSAGE);
