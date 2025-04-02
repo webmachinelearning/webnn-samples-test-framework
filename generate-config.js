@@ -293,7 +293,7 @@ if (process.argv.length === 3 && (process.argv[2] === "--help" || process.argv[2
 
 const args = yargs(hideBin(process.argv))
   .option("browser", { default: "chrome_canary", type: "string" })
-  .option("devices", { default: ["cpu", "gpu", "npu"], type: "array" })
+  .option("devices", { default: "cpu,gpu,npu", type: "string" })
   .parse();
 
 // "_", "$0" are default element after `yargs` parse.
@@ -307,19 +307,22 @@ if (invalidArgs.length > 0) {
 
 const { devices, browser } = args;
 
-if (devices.length === 0 || !devices.every((device) => validDevices.includes(device))) {
-  console.log(`Invalid devices: ${devices}. Please specify valid devices.`);
+// Split devices by comma and validate
+const deviceArray = devices.split(",");
+const invalidDevices = deviceArray.filter((device) => !validDevices.includes(device));
+if (invalidDevices.length > 0) {
+  console.log(`Invalid devices: ${invalidDevices.join(", ")}. Please specify valid devices.`);
   process.exit(1);
 }
 
-if (!browser || !validBrowsers.includes(browser)) {
+if (!validBrowsers.includes(browser)) {
   console.log(`Invalid browser: ${browser}. Please specify a valid browser.`);
   process.exit(1);
 }
 
-console.warn(`browser:${browser}\ndevices:${devices}`);
+console.warn(`browser:${browser}\ndevices:${deviceArray}`);
 
-const filteredConfig = filterSamplesWithDevices(ORIGINAL_CONFIG, devices);
+const filteredConfig = filterSamplesWithDevices(ORIGINAL_CONFIG, deviceArray);
 
 if (browser.startsWith("edge")) {
   filteredConfig.browserArgsNpu.push("--disable_webnn_for_npu=0");
@@ -333,4 +336,4 @@ filteredConfig.browser = browser;
 
 fs.writeFileSync("./config.json", JSON.stringify(filteredConfig, null, 2));
 
-console.log(`./config.json of ${browser} on ${devices.join("-")} has been generated.`);
+console.log(`./config.json of ${browser} on ${deviceArray.join("-")} has been generated.`);
