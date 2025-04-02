@@ -57,11 +57,6 @@ You can also manually adjust the parameters in config.json to fit your specific 
 - `samples`: WebNN samples config.
 - `developerPreview`: WebNN developer preview demo config.
 
-## Set expected canvas image
-
-Expected images are placed in the directory: ./assets/canvas/  
-If the image comparison result is not equal to it, please replace the correct image.
-
 ## Support
 
 #### Dependency
