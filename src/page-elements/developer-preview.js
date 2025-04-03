@@ -71,7 +71,12 @@ const pageElements = {
     data1: "#data1",
     data2: "#data2",
     data3: "#data3",
-    data4: "#data4"
+    data4: "#data4",
+    // image panel
+    imgCanvas0: "#img_canvas_0",
+    imgCanvas1: "#img_canvas_1",
+    imgCanvas2: "#img_canvas_2",
+    imgCanvas3: "#img_canvas_3"
   },
   segmentAnything: {
     logPanel: "#log",
