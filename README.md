@@ -44,7 +44,7 @@ If you run `npm run generate-config` without passing arguments, the default conf
 
 You can also manually adjust the parameters in config.json to fit your specific needs.
 
-- `browser`: Choose browser to run test. "chrome_canary", "chrome_beta", "chrome_dev", "chrome_stable" or your local chrome browser executable path e.g. "C:\\\\workspace\\\\chrome.exe"
+- `browser`: Choose the browser to run the test. Options include `chrome_canary`, `chrome_dev`, `chrome_beta`, `chrome_stable`, `edge_canary` (except on Linux), `edge_dev`, `edge_beta`, `edge_stable`.
 - `browserArgsWebnnNpu`: "--use-redist-dml" argument is optional, it's only required when testing by chrome browsers.
 - `browserUserData`: Browser user data includes browser cache and latest DML(Edge Canary only). When webnn flag is enabled and browserUserData is used, script won't test wasm or webgl backends.
 - `browserUserDataPath`: The browser `User Data` folder path supports manual setting by users and is empty by default.
