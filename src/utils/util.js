@@ -135,11 +135,12 @@ function getBrowserPath(browser) {
         userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge SxS/User Data`;
       }
 
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "microsoft-edge-dev";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      }
+      // right now the edge canary not available on linux
+      // if (deviceInfo.platform === "linux") {
+      //   browserExeName = "microsoft-edge-canary";
+      //   browserPath = `/usr/bin/${browserExeName}`;
+      //   userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
+      // }
 
       if (deviceInfo.platform === "darwin") {
         browserExeName = "Microsoft Edge Canary";
@@ -147,7 +148,65 @@ function getBrowserPath(browser) {
         userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
       }
       break;
+    case "edge_dev":
+      if (deviceInfo.platform === "win32") {
+        browserExeName = "msedge.exe";
+        browserPath = `${process.env.PROGRAMFILES}/Microsoft/Edge Dev/Application/${browserExeName}`;
+        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge Dev/User Data`;
+      }
 
+      if (deviceInfo.platform === "linux") {
+        browserExeName = "microsoft-edge-dev";
+        browserPath = `/usr/bin/${browserExeName}`;
+        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
+      }
+
+      if (deviceInfo.platform === "darwin") {
+        browserExeName = "Microsoft Edge Dev";
+        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
+        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
+      }
+      break;
+
+    case "edge_stable":
+      if (deviceInfo.platform === "win32") {
+        browserExeName = "msedge.exe";
+        browserPath = `${process.env.PROGRAMFILES}/Microsoft/Edge/Application/${browserExeName}`;
+        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge/User Data`;
+      }
+
+      if (deviceInfo.platform === "linux") {
+        browserExeName = "microsoft-edge-stable";
+        browserPath = `/usr/bin/${browserExeName}`;
+        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
+      }
+
+      if (deviceInfo.platform === "darwin") {
+        browserExeName = "Microsoft Edge";
+        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
+        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
+      }
+      break;
+
+    case "edge_beta":
+      if (deviceInfo.platform === "win32") {
+        browserExeName = "msedge.exe";
+        browserPath = `${process.env.PROGRAMFILES}/Microsoft/Edge Beta/Application/${browserExeName}`;
+        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge Beta/User Data`;
+      }
+
+      if (deviceInfo.platform === "linux") {
+        browserExeName = "microsoft-edge-beta";
+        browserPath = `/usr/bin/${browserExeName}`;
+        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
+      }
+
+      if (deviceInfo.platform === "darwin") {
+        browserExeName = "Microsoft Edge Beta";
+        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
+        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
+      }
+      break;
     default:
       browserPath = config.browser || "";
   }

@@ -284,7 +284,25 @@ Options:
 `;
 
 const validDevices = ["cpu", "npu", "gpu"];
-const validBrowsers = ["chrome_canary", "edge_canary", "chrome_beta", "chrome_dev", "chrome_stable", "edge_canary"];
+const validBrowsers = [
+  "chrome_canary",
+  "chrome_dev",
+  "chrome_beta",
+  "chrome_dev",
+  "chrome_stable",
+  "edge_canary",
+  "edge_dev",
+  "edge_beta",
+  "edge_stable"
+];
+
+// edge canary not available on linux
+if (process.platform === "linux") {
+  const index = validBrowsers.indexOf("edge_canary");
+  if (index > -1) {
+    validBrowsers.splice(index, 1);
+  }
+}
 
 if (process.argv.length === 3 && (process.argv[2] === "--help" || process.argv[2] === "-h")) {
   console.log(HELP_MESSAGE);
