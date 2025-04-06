@@ -151,7 +151,7 @@ function getBrowserPath(browser) {
     case "edge_dev":
       if (deviceInfo.platform === "win32") {
         browserExeName = "msedge.exe";
-        browserPath = `${process.env.PROGRAMFILES}/Microsoft/Edge Dev/Application/${browserExeName}`;
+        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge Dev/Application/${browserExeName}`;
         userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge Dev/User Data`;
       }
 
@@ -171,7 +171,7 @@ function getBrowserPath(browser) {
     case "edge_stable":
       if (deviceInfo.platform === "win32") {
         browserExeName = "msedge.exe";
-        browserPath = `${process.env.PROGRAMFILES}/Microsoft/Edge/Application/${browserExeName}`;
+        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge/Application/${browserExeName}`;
         userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge/User Data`;
       }
 
@@ -191,7 +191,7 @@ function getBrowserPath(browser) {
     case "edge_beta":
       if (deviceInfo.platform === "win32") {
         browserExeName = "msedge.exe";
-        browserPath = `${process.env.PROGRAMFILES}/Microsoft/Edge Beta/Application/${browserExeName}`;
+        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge Beta/Application/${browserExeName}`;
         userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge Beta/User Data`;
       }
 
