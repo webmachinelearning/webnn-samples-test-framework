@@ -76,7 +76,9 @@ Windows / Linux / MacOS
 
 #### Browser
 
-chrome_canary / chrome_beta / chrome_dev / chrome_stable / edge_canary
+chrome_canary / chrome_dev / chrome_beta / chrome_stable / edge_canary / edge_dev / edge_beta / edge_stable
+
+edge_canary is not available on Linux.
 
 ## Install
 
