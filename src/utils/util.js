@@ -6,7 +6,7 @@ const dayjs = require("dayjs");
 const path = require("path");
 const config = require("../../config.json");
 const puppeteer = require("puppeteer");
-const { createCanvas, Image } = require("canvas");
+const { createCanvas, Image, loadImage } = require("canvas");
 const prettier = require("prettier");
 const env = require("../../env.json");
 const yargs = require("yargs/yargs");
@@ -135,11 +135,12 @@ function getBrowserPath(browser) {
         userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge SxS/User Data`;
       }
 
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "microsoft-edge-dev";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      }
+      // right now the edge canary not available on linux
+      // if (deviceInfo.platform === "linux") {
+      //   browserExeName = "microsoft-edge-canary";
+      //   browserPath = `/usr/bin/${browserExeName}`;
+      //   userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
+      // }
 
       if (deviceInfo.platform === "darwin") {
         browserExeName = "Microsoft Edge Canary";
@@ -147,7 +148,65 @@ function getBrowserPath(browser) {
         userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
       }
       break;
+    case "edge_dev":
+      if (deviceInfo.platform === "win32") {
+        browserExeName = "msedge.exe";
+        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge Dev/Application/${browserExeName}`;
+        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge Dev/User Data`;
+      }
 
+      if (deviceInfo.platform === "linux") {
+        browserExeName = "microsoft-edge-dev";
+        browserPath = `/usr/bin/${browserExeName}`;
+        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
+      }
+
+      if (deviceInfo.platform === "darwin") {
+        browserExeName = "Microsoft Edge Dev";
+        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
+        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
+      }
+      break;
+
+    case "edge_stable":
+      if (deviceInfo.platform === "win32") {
+        browserExeName = "msedge.exe";
+        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge/Application/${browserExeName}`;
+        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge/User Data`;
+      }
+
+      if (deviceInfo.platform === "linux") {
+        browserExeName = "microsoft-edge-stable";
+        browserPath = `/usr/bin/${browserExeName}`;
+        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
+      }
+
+      if (deviceInfo.platform === "darwin") {
+        browserExeName = "Microsoft Edge";
+        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
+        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
+      }
+      break;
+
+    case "edge_beta":
+      if (deviceInfo.platform === "win32") {
+        browserExeName = "msedge.exe";
+        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge Beta/Application/${browserExeName}`;
+        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge Beta/User Data`;
+      }
+
+      if (deviceInfo.platform === "linux") {
+        browserExeName = "microsoft-edge-beta";
+        browserPath = `/usr/bin/${browserExeName}`;
+        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
+      }
+
+      if (deviceInfo.platform === "darwin") {
+        browserExeName = "Microsoft Edge Beta";
+        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
+        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
+      }
+      break;
     default:
       browserPath = config.browser || "";
   }
@@ -700,6 +759,63 @@ Options:
   }
 }
 
+async function checkImageGeneration(imagePath) {
+  const sdTurboRoot = path.resolve(__dirname, "..", "..", "assets", "canvas", "stable-diffusion-turbo");
+  // save all templates' histogram
+  const histogramFilePath = path.resolve(sdTurboRoot, "histograms.json");
+
+  async function getImageData(path) {
+    const img = await loadImage(path);
+    const canvas = createCanvas(img.width, img.height);
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, img.width, img.height);
+    return ctx.getImageData(0, 0, img.width, img.height);
+  }
+
+  function getColorHistogram(imageData, binsPerChannel = 4) {
+    const totalBins = binsPerChannel ** 3;
+    const hist = new Array(totalBins).fill(0);
+    const data = imageData.data;
+    const totalPixels = imageData.width * imageData.height;
+    const shift = 8 - Math.log2(binsPerChannel);
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i] >> shift;
+      const g = data[i + 1] >> shift;
+      const b = data[i + 2] >> shift;
+      const bin = r * binsPerChannel * binsPerChannel + g * binsPerChannel + b;
+      hist[bin]++;
+    }
+    return { hist, totalPixels };
+  }
+
+  function histogramIntersection(hist1, hist2) {
+    let intersection = 0;
+    for (let i = 0; i < hist1.length; i++) {
+      intersection += Math.min(hist1[i], hist2[i]);
+    }
+    return intersection;
+  }
+
+  async function compareImagesHistogram(testFilepath, binsPerChannel = 4) {
+    const imageData = await getImageData(testFilepath);
+
+    const { hist: hist1, totalPixels } = getColorHistogram(imageData, binsPerChannel);
+    const histogramsTemplate = JSON.parse(fs.readFileSync(histogramFilePath, "utf-8"));
+    let maxSimilarity = 0;
+
+    for (const template of histogramsTemplate) {
+      const intersection = histogramIntersection(hist1, template);
+      const similarity = (intersection / totalPixels) * 100;
+      maxSimilarity = Math.max(maxSimilarity, similarity);
+    }
+
+    return maxSimilarity;
+  }
+
+  return await compareImagesHistogram(imagePath);
+}
+
 module.exports = {
   getBrowserArgs,
   getBrowserPath,
@@ -726,5 +842,6 @@ module.exports = {
   getBestValue,
   parseTestCliArgs,
   cliArgs,
-  copyFile
+  copyFile,
+  checkImageGeneration
 };

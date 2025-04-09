@@ -213,6 +213,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
       }
       console.warn(`${source} $${type} ${sample}: error occurred during launch browser with puppeteer. Error: `, error);
       for (let _backend in config[source][sample]) {
+        if (!["gpu", "npu"].includes(_backend)) continue;
         for (let _dataType in config[source][sample][_backend]) {
           for (let _model of config[source][sample][_backend][_dataType]) {
             _.set(

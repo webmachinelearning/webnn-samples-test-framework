@@ -1,0 +1,1 @@
+`histograms.json` contains the computed histograms of 80 pre-generated images based on the prompt: "a cat under the snow with blue eyes, covered by snow, cinematic style, medium shot, professional photo." These histograms are used to compare with newly generated images from Stable Diffusion Turbo to verify their accuracy.

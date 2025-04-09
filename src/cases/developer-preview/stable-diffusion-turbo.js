@@ -9,6 +9,7 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
   let source = "developerPreview";
   let sample = "stableDiffusionTurbo";
   let results = {};
+  const threshold = 75;
 
   const pageElement = pageElementTotal[sample];
   const browserProcess = util.getBrowserProcess();
@@ -24,6 +25,7 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
     const args = util.getBrowserArgs(backend);
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     let errorMsg = "";
+    let page;
     let browser;
 
     try {
@@ -37,7 +39,7 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
         protocolTimeout: config["timeout"],
         userDataDir
       });
-      const page = await browser.newPage();
+      page = await browser.newPage();
       page.setDefaultTimeout(config["timeout"]);
 
       // navigate the page to a URL
@@ -103,7 +105,14 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
           await page.click(pageElement["generateImageButton"]);
           await util.delay(200);
           // wait results (image 4 show)
-          await page.waitForSelector(pageElement["data4"], { visible: true });
+          await page.waitForFunction(
+            (selector) => {
+              const element = document.querySelector(selector);
+              return element?.textContent.trim().match(/^\d+\.?\d*\s*ms$/);
+            },
+            {},
+            pageElement["data4"]
+          );
           let image4Time = await page.$eval(pageElement["data4"], (el) => el.textContent);
           let checkCount = 0;
           while (image4Time.includes("...")) {
@@ -116,6 +125,21 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
         } catch (error) {
           errorMsg += `[PageTimeout]`;
           throw error;
+        }
+
+        // Verify similarity between generated images and template images
+        // Treat as failure if any of the 4 generated images fall below the threshold
+        for (let index = 0; index < 4; index++) {
+          const canvasName = `stable-diffusion-turbo-generation-round${i}-${index}`;
+          const { canvasPath } = await util.saveCanvasImage(page, pageElement[`imgCanvas${index}`], canvasName);
+
+          const maxSimilarity = await util.checkImageGeneration(canvasPath);
+          console.log(`The max similarity of this ${canvasName} is ${maxSimilarity}`);
+          if (maxSimilarity < threshold) {
+            throw new Error(
+              `The generated image is significantly below expectations. Please review the image at: ${canvasPath}`
+            );
+          }
         }
 
         // get results
