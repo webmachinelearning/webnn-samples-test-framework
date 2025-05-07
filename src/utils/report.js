@@ -426,6 +426,16 @@ async function sendMail(subject, filePath) {
       const { total, failed, performanceDataTable, deviceInfoTable, memoryDataTable, failuresTable } =
         formatResultsAsHTMLTable(jsonData).html;
 
+      if (failuresTable) {
+        htmlContent += `
+          <p><strong>Test Summary (Failed / Total) : ${failed}/ ${total}  </strong></p>
+          ${failuresTable}
+        `;
+      } else {
+        htmlContent += `
+        <p><strong> All ${total} sample tests success.</strong></p>`;
+      }
+
       if (deviceInfoTable) {
         htmlContent += `<p><strong>Device Info</strong></p>
           ${deviceInfoTable}`;
@@ -439,16 +449,6 @@ async function sendMail(subject, filePath) {
       if (memoryDataTable) {
         htmlContent += `<p><strong>Memory Consumption</strong></p>
         ${memoryDataTable}`;
-      }
-
-      if (failuresTable) {
-        htmlContent += `
-          <p><strong>Test Summary (Failed / Total) : ${failed}/ ${total}  </strong></p>
-          ${failuresTable}
-        `;
-      } else {
-        htmlContent += `
-        <p><strong> All ${total} sample tests success.</strong></p>`;
       }
     }
 
