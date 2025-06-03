@@ -521,24 +521,21 @@ async function getConfig() {
   // NPU
   try {
     if (deviceInfo.platform === "win32") {
-      const info = execSync(
-        `powershell -Command "Get-CimInstance -ClassName Win32_PnPEntity | Where-Object { $_.Name -like '*NPU*' } | Select-Object Name,Manufacturer,DeviceID | ConvertTo-Json"`
-      )
+      // Currently supports fetching Intel NPU (AI Boost) device information on Windows platforms,
+      // other NPU manufacturers support will be added in the future.
+      const command = `
+        Get-WmiObject Win32_PnPSignedDriver | 
+        Where-Object { $_.DeviceName -match 'Intel\\(R\\) AI Boost' } | 
+        Select-Object DeviceName, DriverVersion, Manufacturer | 
+        ConvertTo-Json -Depth 3`;
+      const info = execSync(`powershell -Command "${command.replace(/\n+/g, " ")}"`)
         .toString()
         .trim();
+
       const npuInfo = JSON.parse(info);
-      for (let i = 0; i < npuInfo.length; i++) {
-        if (npuInfo[i]["Name"].match("Microsoft")) {
-          continue;
-        }
-        deviceInfo["npuName"] = npuInfo[i]["Name"];
-        deviceInfo["npuManufacturer"] = npuInfo[i]["Manufacturer"];
-        const match = npuInfo[i]["DeviceID"].match(".*DEV_(.{4})");
-        deviceInfo["npuDeviceId"] = match ? match[1].toUpperCase() : "Unknown";
-        const versionMatch = npuInfo[i]["Name"].match(/npu-driver-ci-master-(\d+)/);
-        deviceInfo["npuDriverVersion"] = versionMatch ? versionMatch[1] : "Unknown";
-        break;
-      }
+      deviceInfo["npuName"] = npuInfo["DeviceName"];
+      deviceInfo["npuManufacturer"] = npuInfo["Manufacturer"];
+      deviceInfo["npuDriverVersion"] = npuInfo["DriverVersion"];
     }
   } catch (error) {
     console.error(`Error occurred while getting NPU info\n. Error Details: ${error}`);
