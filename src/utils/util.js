@@ -45,178 +45,59 @@ function getBrowserArgs(backend = "") {
 }
 
 function getBrowserPath(browser) {
+  let userDataDir;
+  if (config.browserUserData && config.browserUserDataPath) {
+    userDataDir = config.browserUserDataPath;
+  } else {
+    userDataDir = path.join(os.tmpdir(), `webnn-sample-test-${browser}`);
+    if (fs.existsSync(userDataDir)) {
+      fs.rmSync(userDataDir, { recursive: true, force: true });
+    }
+    fs.mkdirSync(userDataDir, { recursive: true });
+  }
+
+  const browserConfig = {
+    chrome_canary: { win32: "Chrome SxS", linux: "google-chrome-canary", darwin: "Google Chrome Canary" },
+    chrome_dev: { win32: "Chrome Dev", linux: "google-chrome-unstable", darwin: "Google Chrome Dev" },
+    chrome_beta: { win32: "Chrome Beta", linux: "google-chrome-beta", darwin: "Google Chrome Beta" },
+    chrome_stable: { win32: "Chrome", linux: "google-chrome-stable", darwin: "Google Chrome" },
+    edge_canary: { win32: "Edge SxS", /* not available on linux */ darwin: "Microsoft Edge Canary" },
+    edge_dev: { win32: "Edge Dev", linux: "microsoft-edge-dev", darwin: "Microsoft Edge Dev" },
+    edge_stable: { win32: "Edge", linux: "microsoft-edge-stable", darwin: "Microsoft Edge" },
+    edge_beta: { win32: "Edge Beta", linux: "microsoft-edge-beta", darwin: "Microsoft Edge Beta" }
+  };
+
   let browserPath;
   let browserExeName;
-  let userDataDir;
-
-  switch (browser) {
-    case "chrome_canary":
-      chromePath = "Chrome SxS";
-      if (deviceInfo.platform === "win32") {
-        browserExeName = "chrome.exe";
-        browserPath = `${process.env.LOCALAPPDATA}/Google/Chrome SxS/Application/${browserExeName}`;
-        userDataDir = `${process.env.LOCALAPPDATA}/Google/${chromePath}/User Data`;
-      }
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "google-chrome-canary";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      }
-      if (deviceInfo.platform === "darwin") {
-        browserExeName = "Google Chrome Canary";
-        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
-        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/Google/${chromePath}`;
-      }
-      break;
-
-    case "chrome_dev":
-      chromePath = "Chrome Dev";
-      if (deviceInfo.platform === "win32") {
-        browserExeName = "chrome.exe";
-        browserPath = `${process.env.PROGRAMFILES}/Google/Chrome Dev/Application/${browserExeName}`;
-        userDataDir = `${process.env.LOCALAPPDATA}/Google/${chromePath}/User Data`;
-      }
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "google-chrome-unstable";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/google-chrome-unstable`;
-      }
-      if (deviceInfo.platform === "darwin") {
-        browserExeName = "Google Chrome Dev";
-        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
-        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/Google/${chromePath}`;
-      }
-
-      break;
-
-    case "chrome_beta":
-      chromePath = "Chrome Beta";
-      if (deviceInfo.platform === "win32") {
-        browserExeName = "chrome.exe";
-        browserPath = `${process.env.PROGRAMFILES}/Google/Chrome Beta/Application/${browserExeName}`;
-        userDataDir = `${process.env.LOCALAPPDATA}/Google/${chromePath}/User Data`;
-      }
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "google-chrome-beta";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      }
-      if (deviceInfo.platform === "darwin") {
-        browserExeName = "Google Chrome Beta";
-        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
-        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/Google/${chromePath}`;
-      }
-      break;
-
-    case "chrome_stable":
-      chromePath = "Chrome";
-      if (deviceInfo.platform === "win32") {
-        browserExeName = "chrome.exe";
-        browserPath = `${process.env.PROGRAMFILES}/Google/Chrome/Application/${browserExeName}`;
-        userDataDir = `${process.env.LOCALAPPDATA}/Google/${chromePath}/User Data`;
-      }
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "google-chrome-stable";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      }
-      if (deviceInfo.platform === "darwin") {
-        browserExeName = "Google Chrome";
-        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
-        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/Google/${chromePath}`;
-      }
-
-      break;
-
-    case "edge_canary":
-      if (deviceInfo.platform === "win32") {
-        browserExeName = "msedge.exe";
-        browserPath = `${process.env.LOCALAPPDATA}/Microsoft/Edge SxS/Application/${browserExeName}`;
-        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge SxS/User Data`;
-      }
-
-      // right now the edge canary not available on linux
-      // if (deviceInfo.platform === "linux") {
-      //   browserExeName = "microsoft-edge-canary";
-      //   browserPath = `/usr/bin/${browserExeName}`;
-      //   userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      // }
-
-      if (deviceInfo.platform === "darwin") {
-        browserExeName = "Microsoft Edge Canary";
-        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
-        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
-      }
-      break;
-    case "edge_dev":
-      if (deviceInfo.platform === "win32") {
-        browserExeName = "msedge.exe";
-        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge Dev/Application/${browserExeName}`;
-        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge Dev/User Data`;
-      }
-
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "microsoft-edge-dev";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      }
-
-      if (deviceInfo.platform === "darwin") {
-        browserExeName = "Microsoft Edge Dev";
-        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
-        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
-      }
-      break;
-
-    case "edge_stable":
-      if (deviceInfo.platform === "win32") {
-        browserExeName = "msedge.exe";
-        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge/Application/${browserExeName}`;
-        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge/User Data`;
-      }
-
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "microsoft-edge-stable";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      }
-
-      if (deviceInfo.platform === "darwin") {
-        browserExeName = "Microsoft Edge";
-        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
-        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
-      }
-      break;
-
-    case "edge_beta":
-      if (deviceInfo.platform === "win32") {
-        browserExeName = "msedge.exe";
-        browserPath = `${process.env["ProgramFiles(x86)"]}/Microsoft/Edge Beta/Application/${browserExeName}`;
-        userDataDir = `${process.env.LOCALAPPDATA}/Microsoft/Edge Beta/User Data`;
-      }
-
-      if (deviceInfo.platform === "linux") {
-        browserExeName = "microsoft-edge-beta";
-        browserPath = `/usr/bin/${browserExeName}`;
-        userDataDir = `/home/${os.userInfo().username}/.config/${browserExeName}`;
-      }
-
-      if (deviceInfo.platform === "darwin") {
-        browserExeName = "Microsoft Edge Beta";
-        browserPath = `/Applications/${browserExeName}.app/Contents/MacOS/${browserExeName}`;
-        userDataDir = `/Users/${os.userInfo().username}/Library/Application Support/${browserExeName}`;
-      }
-      break;
-    default:
-      browserPath = config.browser || "";
+  const browserConf = browserConfig[browser];
+  if (!browserConf) {
+    throw new Error(`Unsupported browser: ${browser}`);
+  }
+  const browserName = browserConf[deviceInfo.platform];
+  if (!browserName) {
+    throw new Error(`Unsupported browser for platform ${deviceInfo.platform}: ${browser}`);
+  }
+  if (deviceInfo.platform === "win32") {
+    let baseDir;
+    if (browser.includes("edge") && !browser.includes("canary")) {
+      baseDir = process.env["ProgramFiles(x86)"];
+    } else if (browser.includes("canary")) {
+      baseDir = process.env.LOCALAPPDATA;
+    } else {
+      baseDir = process.env.PROGRAMFILES;
+    }
+    browserExeName = browser.includes("chrome") ? "chrome.exe" : "msedge.exe";
+    browserPath = path.join(baseDir, browser.includes("edge") ? "Microsoft" : "Google", browserName, "Application", browserExeName);
+  } else if (deviceInfo.platform === "linux") {
+    browserExeName = browserName;
+    browserPath = path.join("/usr/bin", browserExeName);
+  } else if (deviceInfo.platform === "darwin") {
+    browserExeName = browserName;
+    browserPath = path.join("/Applications", `${browserName}.app`, "Contents", "MacOS", browserName);
   }
 
   if (config.browserAppPath) {
-    browserPath = `${config.browserAppPath}\\${browserExeName}`;
-  }
-
-  if (config.browserUserData && config.browserUserDataPath) {
-    userDataDir = config.browserUserDataPath;
+    browserPath = path.join(config.browserAppPath, browserExeName);
   }
 
   return { browserPath, userDataDir };
