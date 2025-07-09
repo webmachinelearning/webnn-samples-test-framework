@@ -55,8 +55,7 @@ function filterSamplesWithDevices(config, devices) {
 const ORIGINAL_CONFIG = {
   browser: "chrome_canary",
   browserArgs: ["--start-maximized"],
-  browserArgsWebnn: ["--enable-features=WebMachineLearningNeuralNetwork", "--allow-third-party-modules"],
-  browserArgsNpu: ["--ignore-gpu-blocklist"],
+  browserArgsWebnn: ["--enable-features=WebMachineLearningNeuralNetwork,WebNNOnnxRuntime"],
   browserUserData: true,
   browserUserDataPath: "",
   browserAppPath: "",
@@ -340,15 +339,6 @@ if (!validBrowsers.includes(browser)) {
 console.warn(`browser:${browser}\ndevices:${deviceArray}`);
 
 const filteredConfig = filterSamplesWithDevices(ORIGINAL_CONFIG, deviceArray);
-
-if (browser.startsWith("edge")) {
-  filteredConfig.browserArgsNpu.push("--disable_webnn_for_npu=0");
-}
-
-if (browser.startsWith("chrome")) {
-  filteredConfig.browserArgsWebnn.push("--use-redist-dml");
-}
-
 filteredConfig.browser = browser;
 
 fs.writeFileSync("./config.json", JSON.stringify(filteredConfig, null, 2));
