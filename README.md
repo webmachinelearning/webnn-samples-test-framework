@@ -2,16 +2,6 @@
 
 An automation test framework for testing [W3C WebNN Samples](https://github.com/webmachinelearning/webnn-samples) and [Microsoft WebNN Demos](https://microsoft.github.io/webnn-developer-preview/).
 
-## Precondition
-
-Install GPU and NPU drivers, prepare test enviroment with DirectML.dll of target version (such as 1.15.2).
-
-```sh
-copy DirectML.dll "%LOCALAPPDATA%\Google\Chrome SxS\Application\130.0.6715.0\"
-```
-
-Please refer to [WebNN Installation Guides](https://github.com/webmachinelearning/webnn-samples#webnn-installation-guides) for more details.
-
 ## Set env.json
 
 - `env`: `'debug'` for local development. `'production'` for production model and the test result will be sent via email.
@@ -45,8 +35,7 @@ If you run `npm run generate-config` without passing arguments, the default conf
 You can also manually adjust the parameters in config.json to fit your specific needs.
 
 - `browser`: Choose the browser to run the test. Options include `chrome_canary`, `chrome_dev`, `chrome_beta`, `chrome_stable`, `edge_canary` (except on Linux), `edge_dev`, `edge_beta`, `edge_stable`.
-- `browserArgsWebnnNpu`: "--use-redist-dml" argument is optional, it's only required when testing by chrome browsers.
-- `browserUserData`: Browser user data includes browser cache and latest DML(Edge Canary only). When webnn flag is enabled and browserUserData is used, script won't test wasm or webgl backends.
+- `browserUserData`: Browser user data includes browser cache. When webnn flag is enabled and browserUserData is used, script won't test wasm or webgl backends.
 - `browserUserDataPath`: The browser `User Data` folder path supports manual setting by users and is empty by default.
 - `browserAppPath`: The browser `Application` folder path supports manual setting by users and is empty by default.
 - `headless`: Display chrome UI.

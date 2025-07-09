@@ -35,9 +35,6 @@ function getBrowserArgs(backend = "") {
   const browserArgs = [...config["browserArgs"]];
   // push webnn arguments by default
   browserArgs.push(...config["browserArgsWebnn"]);
-  if (backend === "npu") {
-    browserArgs.push(...config["browserArgsNpu"]);
-  }
   if (env.proxy.host) {
     browserArgs.push(`--proxy-server=${env.proxy.host}:${env.proxy.port}`);
   }
