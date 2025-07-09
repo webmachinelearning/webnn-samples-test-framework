@@ -6,6 +6,7 @@
 //      2. Change backend or models then click `classify` - switchBackendAndModels
 
 const puppeteer = require("puppeteer");
+const qs = require("qs");
 const util = require("../../utils/util.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 const _ = require("lodash");
@@ -62,8 +63,11 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
 
-      const urlArguments = `${config[source][sample].urlArgs[backend]}${config[source][sample].urlArgs[model]}`;
-      await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}${urlArguments}`, {
+      const urlQuery = qs.stringify({
+        ...config[source][sample].urlArgs[backend],
+        ...config[source][sample].urlArgs[model],
+      });
+      await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}?${urlQuery}`, {
         waitUntil: "networkidle0"
       });
 
@@ -107,8 +111,11 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
 
-      const urlArguments = `${config[source][sample].urlArgs[backend]}${config[source][sample].urlArgs[model]}`;
-      await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}${urlArguments}`, {
+      const urlQuery = qs.stringify({
+        ...config[source][sample].urlArgs[backend],
+        ...config[source][sample].urlArgs[model],
+      });
+      await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}?${urlQuery}`, {
         waitUntil: "networkidle0"
       });
 
@@ -168,7 +175,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
       });
 
       for (let _backend in config[source][sample]) {
-        if (!["gpu", "npu"].includes(_backend)) continue;
+        if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
         for (let _dataType in config[source][sample][_backend]) {
           for (let _model of config[source][sample][_backend][_dataType]) {
             console.log(`${type} ${source} ${sample} ${_backend} ${_dataType} ${_model} testing...`);
@@ -213,7 +220,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
       }
       console.warn(`${source} $${type} ${sample}: error occurred during launch browser with puppeteer. Error: `, error);
       for (let _backend in config[source][sample]) {
-        if (!["gpu", "npu"].includes(_backend)) continue;
+        if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
         for (let _dataType in config[source][sample][_backend]) {
           for (let _model of config[source][sample][_backend][_dataType]) {
             _.set(
@@ -234,7 +241,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     await testExecution(backend, dataType, model);
   } else {
     for (let _backend in config[source][sample]) {
-      if (!["gpu", "npu"].includes(_backend)) continue;
+      if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
       for (let _dataType in config[source][sample][_backend]) {
         for (let _model of config[source][sample][_backend][_dataType]) {
           await testExecution(_backend, _dataType, _model);
@@ -245,7 +252,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
 
   // 1. loop to open new page for each test but classify multiple times (5 times currently)
   for (let _backend in config[source][sample]) {
-    if (!["gpu", "npu"].includes(_backend)) continue;
+    if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
     for (let _dataType in config[source][sample][_backend]) {
       for (let _model of config[source][sample][_backend][_dataType]) {
         await repeatInferenceInOnePage(_backend, _dataType, _model);

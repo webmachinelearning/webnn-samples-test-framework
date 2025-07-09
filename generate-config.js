@@ -256,14 +256,16 @@ const ORIGINAL_CONFIG = {
       ]
     },
     imageClassification: {
+      cpu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
       gpu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
       npu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
       urlArgs: {
-        gpu: "?provider=webnn&devicetype=gpu&run=100",
-        npu: "?provider=webnn&devicetype=npu&run=100",
-        mobileNetV2: "&model=mobilenet-v2",
-        resNet50: "&model=resnet-50",
-        efficientNetLite4: "&model=efficientnet-lite4"
+        cpu: { provider: "webnn", devicetype: "cpu", run: 50 },
+        gpu: { provider: "webnn", devicetype: "gpu", run: 50 },
+        npu: { provider: "webnn", devicetype: "npu", run: 50 },
+        mobileNetV2: { model: "mobilenet-v2" },
+        resNet50: { model: "resnet-50" },
+        efficientNetLite4: { model: "efficientnet-lite4" },
       }
     }
   }
