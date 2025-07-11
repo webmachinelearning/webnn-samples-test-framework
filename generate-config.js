@@ -69,7 +69,7 @@ const ORIGINAL_CONFIG = {
     facialLandmarkDetection: "/facial_landmark_detection/",
     fastStyleTransfer: "/style_transfer/",
     handwrittenDigitsClassification: "/lenet/",
-    imageClassification: "/image_classification/",
+    imageClassification: "/image_classification/?numRuns=50",
     objectDetection: "/object_detection/",
     semanticSegmentation: "/semantic_segmentation/",
     noiseSuppressionNsNet2: "/nsnet2/",
