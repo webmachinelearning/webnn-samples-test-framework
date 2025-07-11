@@ -1,9 +1,12 @@
+const fs = require("fs");
+const path = require("path");
+
 const _ = require("lodash");
-const util = require("./utils/util.js");
-const { generateTestSummaryMd, report, scpUpload } = require("./utils/report.js");
+
 const config = require("../config.json");
 const env = require("../env.json");
-const path = require("path");
+const util = require("./utils/util.js");
+const { renderResultsAsHTML, report, scpUpload } = require("./utils/report.js");
 
 const SAMPLES_NAME_JS_PATH_MAPPING = {
   imageClassification: __dirname + "/cases/samples/image-classification.js",
@@ -117,7 +120,9 @@ const main = async () => {
       targetName: path.basename(jsonPath).substring(0, 8) + ".json"
     });
 
-    generateTestSummaryMd(jsonPath);
+    const htmlPath = jsonPath.split(".")[0] + ".html";
+    fs.writeFileSync(htmlPath, await renderResultsAsHTML(require(jsonPath)));
+    console.log(`Test results have been saved to ${jsonPath} and ${htmlPath}`);
 
     if (env.env === "production") {
       await report(jsonPath);

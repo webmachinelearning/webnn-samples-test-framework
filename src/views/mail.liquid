@@ -1,0 +1,156 @@
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    th {
+        background-color: rgb(4, 116, 196);
+        color: white;
+    }
+
+    th, td {
+        border: 1px solid black;
+        padding: 0 6px;
+    }
+
+    table.number-data td {
+        text-align: right;
+    }
+
+    table.number-data td:first-child {
+        text-align: left;
+    }
+</style>
+
+<p>{{ header }}</p>
+
+<p>Test Summary (Failed / Total): {{ failed }} / {{ total }}</p>
+
+{% if failedCases %}
+    <table>
+        <thead>
+        <tr>
+            <th>Test Case</th>
+            <th>Error</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for case in failedCases %}
+            <tr>
+                <td>{{ case.variable }}</td>
+                <td>{{ case.error }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if deviceInfo %}
+    <h3>Device Information</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Category</th>
+            <th>Details</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for info in deviceInfo %}
+            <tr>
+                <td>{{ info[0] }}</td>
+                <td>{{ info[1] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if samples %}
+    <h3>Performance of WebNN Samples</h3>
+    <table class="number-data">
+        <thead>
+        <tr>
+            <th>Demo</th>
+            <th>Inference<br>Time (ms)</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sample in samples %}
+            <tr>
+                <td>{{ sample[0] }}</td>
+                <td>{{ sample[1].inferenceTime }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if developerPreview %}
+    <h3>Performance of WebNN Developer Preview</h3>
+    <table class="number-data">
+        <thead>
+        <tr>
+            <th>Demo</th>
+            <th>First<br>(ms)</th>
+            <th>Average<br>(ms)</th>
+            <th>Median<br>(ms)</th>
+            <th>Best<br>(ms)</th>
+            <th>Throughput<br>(FPS)</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sample in developerPreview %}
+            <tr>
+                <td>{{ sample[0] }}</td>
+                <td>{{ sample[1].first }}</td>
+                <td>{{ sample[1].average }}</td>
+                <td>{{ sample[1].median }}</td>
+                <td>{{ sample[1].best }}</td>
+                <td>{{ sample[1].throughput }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if memory %}
+    <h3>Memory Consumption</h3>
+    <table class="number-data">
+        <thead>
+        <tr>
+            <th rowspan="3">Demo</th>
+            <th colspan="6">Private Memory (GB)</th>
+        </tr>
+        <tr>
+            <th colspan="3">Renderer</th>
+            <th colspan="3">GPU</th>
+        </tr>
+        <tr>
+            <th>before</th>
+            <th>after</th>
+            <th>peak</th>
+            <th>before</th>
+            <th>after</th>
+            <th>peak</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% assign gigabytes = 1073741824 %}
+        {% for sample in memory %}
+            <tr>
+                <td>{{ sample[0] }}</td>
+                <td>{{ sample[1].privateMemoryRendererBefore | divided_by: gigabytes | round: 3 }}</td>
+                <td>{{ sample[1].privateMemoryRendererAfter | divided_by: gigabytes | round: 3 }}</td>
+                <td>{{ sample[1].privateMemoryRendererPeak | divided_by: gigabytes | round: 3 }}</td>
+                <td>{{ sample[1].privateMemoryGpuBefore | divided_by: gigabytes | round: 3 }}</td>
+                <td>{{ sample[1].privateMemoryGpuAfter | divided_by: gigabytes | round: 3 }}</td>
+                <td>{{ sample[1].privateMemoryGpuPeak | divided_by: gigabytes | round: 3 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<p>{{ footer }}</p>
+
+<p>Thanks,<br>{{ signature }}</p>
