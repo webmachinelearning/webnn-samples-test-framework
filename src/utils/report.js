@@ -81,7 +81,7 @@ async function renderResultsAsHTML(data) {
   traverse(data.developerPreview, ["developerPreview"], developerPreview);
 
   return new Liquid({
-    root: path.resolve(__dirname, '../views'),
+    root: path.resolve(__dirname, "../views")
   }).renderFile("mail.liquid", {
     header: env.emailService.header,
     failed: failuresSamples.length,
@@ -92,28 +92,21 @@ async function renderResultsAsHTML(data) {
     developerPreview,
     memory: memoryConsumptionData,
     footer: env.emailService.footer,
-    signature: env.emailService.signature ?? "WebNN Team",
+    signature: env.emailService.signature ?? "WebNN Team"
   });
 }
 
-async function sendMail(subject, filePath) {
+async function sendMail(subject, html, attachments) {
   let transporter = nodemailer.createTransport(env.emailService.serverConfig);
   try {
-    const result = fs.readFileSync(filePath, "utf8");
-    let mailOptions = {
+    await transporter.verify();
+    await transporter.sendMail({
       from: env.emailService.from,
       to: env.emailService.to,
-      subject: subject,
-      html: await renderResultsAsHTML(result),
-      attachments: [
-        {
-          filename: "test-results.json",
-          content: result
-        }
-      ]
-    };
-    await transporter.verify();
-    await transporter.sendMail(mailOptions);
+      subject,
+      html,
+      attachments
+    });
   } catch (error) {
     console.error("Failed to send email:", error);
   } finally {
@@ -121,7 +114,7 @@ async function sendMail(subject, filePath) {
   }
 }
 
-async function report(filePath) {
+async function report(results) {
   if (!env.emailService.to.length) {
     console.log("No email recipient, skipping.");
     return;
@@ -131,8 +124,13 @@ async function report(filePath) {
   let subject = `[Sample Test][${config.browser}] ${hostname} ${reportTime}`;
 
   try {
-    await sendMail(subject, filePath);
-    console.log(`Email was sent to ${env.emailService.to}!`);
+    await sendMail(subject, await renderResultsAsHTML(results), [
+      {
+        filename: `webnn-samples-test-results-${hostname}-${reportTime}.json`,
+        content: JSON.stringify(results)
+      }
+    ]);
+    console.log(`Sent email to ${env.emailService.to}!`);
   } catch (error) {
     console.error(`Failed to send email: ${error.toString()}`);
   }
