@@ -125,7 +125,7 @@ const main = async () => {
     console.log(`Test results have been saved to ${jsonPath} and ${htmlPath}`);
 
     if (env.env === "production") {
-      await report(jsonPath);
+      await report(results);
       await scpUpload(jsonPath);
     }
   } catch (error) {
