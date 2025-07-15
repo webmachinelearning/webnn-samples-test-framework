@@ -1,8 +1,8 @@
 const childProcess = require("child_process");
-const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
+const juice = require("juice");
 const { Liquid } = require("liquidjs");
 const nodemailer = require("nodemailer");
 
@@ -12,16 +12,6 @@ const util = require("./util.js");
 
 async function renderResultsAsHTML(data) {
   const failuresSamples = [];
-
-  const memoryMetrics = [
-    "privateMemoryRendererBefore",
-    "privateMemoryRendererAfter",
-    "privateMemoryRendererPeak",
-    "privateMemoryGpuBefore",
-    "privateMemoryGpuAfter",
-    "privateMemoryGpuPeak"
-  ];
-
   const memoryConsumptionData = {};
   const testSummaryResults = [];
   let totalCaseCount = 0;
@@ -62,9 +52,8 @@ async function renderResultsAsHTML(data) {
         result[variable][key] = obj[key];
       }
       // collect memory data
-      else if (memoryMetrics.includes(key) && !obj["error"]) {
-        // remove useless attribute
-        const variable = path.slice(0, -1).join("-");
+      else if (key.startsWith("privateMemory") && !obj["error"]) {
+        const variable = path.join("-");
         if (!memoryConsumptionData[variable]) {
           memoryConsumptionData[variable] = {};
         }
@@ -75,25 +64,48 @@ async function renderResultsAsHTML(data) {
     }
   }
 
-  let samples = {};
-  let developerPreview = {};
-  traverse(data.samples, ["samples"], samples);
-  traverse(data.developerPreview, ["developerPreview"], developerPreview);
+  let result = {};
+  traverse({ samples: data.samples, developerPreview: data.developerPreview }, [], result);
+  const inferenceTimeResult = Object.fromEntries(Object.entries(result).filter(([_, value]) => value.inferenceTime));
+  const firstAverageMedianBestResult = Object.fromEntries(Object.entries(result).filter(([_, value]) => value.average));
+  let aggregatedFailures = {};
+  for (let failure of failuresSamples) {
+    let key = failure.variable.split("-").slice(0, -1).join("-");
+    let model = failure.variable.split("-").slice(-1)[0];
+    if (aggregatedFailures[key]?.error === failure.error) {
+      aggregatedFailures[key].models.push(model);
+    } else {
+      aggregatedFailures[key] = {
+        variable: key,
+        models: [model],
+        error: failure.error
+      };
+    }
+  }
 
-  return new Liquid({
+  const engine = new Liquid({
     root: path.resolve(__dirname, "../views")
-  }).renderFile("mail.liquid", {
-    header: env.emailService.header,
-    failed: failuresSamples.length,
-    total: totalCaseCount,
-    failedCases: failuresSamples,
-    deviceInfo: data.deviceInfo,
-    samples,
-    developerPreview,
-    memory: memoryConsumptionData,
-    footer: env.emailService.footer,
-    signature: env.emailService.signature ?? "WebNN Team"
   });
+  engine.registerFilter("gb", (bytes) => {
+    if (isNaN(bytes)) {
+      return "-";
+    }
+    return (bytes / 1024 ** 3).toFixed(3);
+  });
+  return engine
+    .renderFile("mail.liquid", {
+      header: env.emailService.header,
+      failed: failuresSamples.length,
+      total: totalCaseCount,
+      failedCases: Object.values(aggregatedFailures),
+      deviceInfo: data.deviceInfo,
+      inferenceTimeResult,
+      firstAverageMedianBestResult,
+      memory: memoryConsumptionData,
+      footer: env.emailService.footer,
+      signature: env.emailService.signature ?? "WebNN Team"
+    })
+    .then(juice);
 }
 
 async function sendMail(subject, html, attachments) {
@@ -127,7 +139,7 @@ async function report(results) {
     await sendMail(subject, await renderResultsAsHTML(results), [
       {
         filename: `webnn-samples-test-results-${hostname}-${reportTime}.json`,
-        content: JSON.stringify(results)
+        content: JSON.stringify(results, null, 2)
       }
     ]);
     console.log(`Sent email to ${env.emailService.to}!`);
