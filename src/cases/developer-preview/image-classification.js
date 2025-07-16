@@ -54,7 +54,6 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     const screenshotFilename = `${source}_${sample}_${backend}_${dataType}_${model}`;
     const args = util.getBrowserArgs(backend);
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -65,32 +64,32 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
 
       const urlQuery = qs.stringify({
         ...config[source][sample].urlArgs[backend],
-        ...config[source][sample].urlArgs[model],
+        ...config[source][sample].urlArgs[model]
       });
       await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}?${urlQuery}`, {
         waitUntil: "networkidle0"
       });
 
-      await util.waitForElementEnabled(page, pageElement.classifyButton);
-      await page.click(pageElement.classifyButton);
-      await page.waitForSelector(pageElement.result, { visible: true });
+      await Promise.race([
+        (async () => {
+          await util.waitForElementEnabled(page, pageElement.classifyButton);
+          await page.click(pageElement.classifyButton);
+          await page.waitForSelector(pageElement.result, { visible: true });
+        })(),
+        util.throwOnDevelopmentPreviewError(page, pageElement.alertWaring)
+      ]);
 
       const { performanceResults, imageResults } = await getPageResults(page);
       Object.entries(performanceResults).forEach(([_metric, _value]) => {
         _.set(results, [sample, backend, dataType, model, _metric], _value);
       });
 
-      await util.saveScreenshot(page, screenshotFilename);
       console.log("Test Results: ", performanceResults, imageResults);
     } catch (error) {
-      errorMsg += error.message;
-      if (page) {
-        await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
-      }
-      console.warn(errorMsg);
+      _.set(results, [sample, backend, dataType, model, "error"], error.message.substring(0, config.errorMsgMaxLength));
+      console.warn(error.message);
     } finally {
-      _.set(results, [sample, backend, dataType, model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
+      if (page) await util.saveScreenshot(page, screenshotFilename);
       if (browser) await browser.close();
     }
   };
@@ -102,7 +101,6 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     const screenshotFilename = `${source}_${type}_${sample}_${backend}_${dataType}_${model}`;
     const args = util.getBrowserArgs(backend);
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -113,48 +111,42 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
 
       const urlQuery = qs.stringify({
         ...config[source][sample].urlArgs[backend],
-        ...config[source][sample].urlArgs[model],
+        ...config[source][sample].urlArgs[model]
       });
       await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}?${urlQuery}`, {
         waitUntil: "networkidle0"
       });
 
       for (let i = 0; i < testRounds; i++) {
-        try {
-          console.log(`round: ${i} testing ...`);
-          await util.waitForElementEnabled(page, pageElement.classifyButton);
-          await page.click(pageElement.classifyButton);
-          await page.waitForSelector(pageElement.result, { visible: true });
+        console.log(`round: ${i} testing ...`);
+        await Promise.race([
+          (async () => {
+            await util.waitForElementEnabled(page, pageElement.classifyButton);
+            await page.click(pageElement.classifyButton);
+            await page.waitForSelector(pageElement.result, { visible: true });
+          })(),
+          util.throwOnDevelopmentPreviewError(page, pageElement.alertWaring)
+        ]);
 
-          const { performanceResults, imageResults } = await getPageResults(page);
-          console.log(`Round:${i} test results: `, performanceResults, imageResults);
+        const { performanceResults, imageResults } = await getPageResults(page);
+        console.log(`Round:${i} test results: `, performanceResults, imageResults);
 
-          if (i === testRounds - 1) {
-            Object.entries(performanceResults).forEach(([_metric, _value]) => {
-              _.set(results, [type + "_" + sample, backend, dataType, model, _metric], _value);
-            });
-          }
-          util.delay(500);
-        } catch (error) {
-          error.message = `[PageTimeout]`;
-          throw error;
+        if (i === testRounds - 1) {
+          Object.entries(performanceResults).forEach(([_metric, _value]) => {
+            _.set(results, [type + "_" + sample, backend, dataType, model, _metric], _value);
+          });
         }
+        await util.delay(500);
       }
-
-      await util.saveScreenshot(page, screenshotFilename);
     } catch (error) {
-      errorMsg += error.message;
-      if (page) {
-        await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
-      }
-      console.warn(errorMsg);
-    } finally {
       _.set(
         results,
         [type + "_" + sample, backend, dataType, model, "error"],
-        errorMsg.substring(0, config.errorMsgMaxLength)
+        error.message.substring(0, config.errorMsgMaxLength)
       );
+      console.warn(error.message);
+    } finally {
+      if (page) await util.saveScreenshot(page, screenshotFilename);
       if (browser) await browser.close();
     }
   };
@@ -180,36 +172,34 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
           for (let _model of config[source][sample][_backend][_dataType]) {
             console.log(`${type} ${source} ${sample} ${_backend} ${_dataType} ${_model} testing...`);
             const screenshotFilename = `${source}_${type}_${sample}_${_backend}_${_dataType}_${_model}`;
-            let errorMsg = "";
             try {
-              await page.click(pageElement[_backend]);
-              await page.click(pageElement[_model]);
-
-              await util.waitForElementEnabled(page, pageElement.classifyButton);
-              await page.click(pageElement.classifyButton);
-              await page.waitForSelector(pageElement.result, { visible: true });
+              await Promise.race([
+                (async () => {
+                  await page.click(pageElement[_backend]);
+                  await page.click(pageElement[_model]);
+                  await util.waitForElementEnabled(page, pageElement.classifyButton);
+                  await page.click(pageElement.classifyButton);
+                  await page.waitForSelector(pageElement.result, { visible: true });
+                })(),
+                util.throwOnDevelopmentPreviewError(page, pageElement.alertWaring)
+              ]);
 
               const { performanceResults, imageResults } = await getPageResults(page);
               Object.entries(performanceResults).forEach(([_metric, _value]) => {
                 _.set(results, [type + "_" + sample, _backend, _dataType, _model, _metric], _value);
               });
 
-              await util.saveScreenshot(page, screenshotFilename);
               console.log("Test Results: ", performanceResults, imageResults);
-              util.delay(500);
+              await util.delay(500);
             } catch (error) {
-              errorMsg += error.message;
-              if (page) {
-                await util.saveScreenshot(page, screenshotFilename);
-                errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
-              }
-              console.warn(errorMsg);
-            } finally {
               _.set(
                 results,
                 [type + "_" + sample, _backend, _dataType, _model, "error"],
-                errorMsg.substring(0, config.errorMsgMaxLength)
+                error.message.substring(0, config.errorMsgMaxLength)
               );
+              console.warn(error.message);
+            } finally {
+              await util.saveScreenshot(page, screenshotFilename);
             }
           }
         }

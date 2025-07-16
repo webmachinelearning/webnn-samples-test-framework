@@ -21,7 +21,6 @@ async function imageClassificationTest({ backend, dataType, model } = {}) {
     // set browser args, browser path
     const args = util.getBrowserArgs(backend);
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -51,14 +50,10 @@ async function imageClassificationTest({ backend, dataType, model } = {}) {
       }
 
       // wait for model running results
-      try {
-        await page.waitForSelector(pageElement["computeTime"], {
-          visible: true
-        });
-      } catch (error) {
-        errorMsg += `[PageTimeout]`;
-        throw error;
-      }
+      await Promise.race([
+        page.waitForSelector(pageElement["computeTime"], { visible: true }),
+        util.throwErrorOnElement(page, pageElement.alertWarning)
+      ]);
 
       // get results
       const loadTime = await page.$eval(pageElement["loadTime"], (el) => el.textContent);
@@ -82,8 +77,7 @@ async function imageClassificationTest({ backend, dataType, model } = {}) {
         label1: label1,
         probability1: prob1,
         label2: label2,
-        probability2: prob2,
-        error: errorMsg
+        probability2: prob2
       };
 
       pageResults = util.replaceEmptyData(pageResults);
@@ -92,14 +86,12 @@ async function imageClassificationTest({ backend, dataType, model } = {}) {
       _.set(results, [sample, backend, dataType, model, "inferenceTime"], pageResults.inferenceTime);
       await util.saveScreenshot(page, screenshotFilename);
     } catch (error) {
-      errorMsg += error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
       }
-      console.warn(errorMsg);
+      console.warn(error.message);
+      _.set(results, [sample, backend, dataType, model, "error"], error.message.substring(0, config.errorMsgMaxLength));
     } finally {
-      _.set(results, [sample, backend, dataType, model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
       if (browser) await browser.close();
     }
   };

@@ -37,7 +37,6 @@ async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     const screenshotFilename = `${source}_${sample}_${backend}_${dataType}_${model}`;
 
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -63,26 +62,19 @@ async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
       await page.waitForSelector(`::-p-xpath(${pageElement.backendText})`);
       await util.clickElementIfEnabled(page, pageElement[backend]);
 
-      try {
-        await page.waitForSelector(`::-p-xpath(${pageElement.readyText})`, {
-          visible: true
-        });
-      } catch (error) {
-        errorMsg += `[PageTimeout]`;
-        throw error;
-      }
+      await Promise.race([
+        page.waitForSelector(`::-p-xpath(${pageElement.readyText})`, { visible: true }),
+        util.throwErrorOnElement(page, pageElement.alertWarning)
+      ]);
 
       for (let example of config[source][sample]["examples"]) {
         await page.click(pageElement["chooseAudioButton"]);
         // wait for dropdown menu
-        try {
-          await page.waitForSelector(pageElement[example], {
-            visible: true
-          });
-        } catch (error) {
-          errorMsg += `[PageTimeout]`;
-          throw error;
-        }
+
+        await Promise.race([
+          page.waitForSelector(pageElement[example], { visible: true }),
+          util.throwErrorOnElement(page, pageElement.alertWarning)
+        ]);
 
         await page.click(pageElement[example]);
         // wait for last results disappear
@@ -91,14 +83,11 @@ async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
         });
 
         // wait for model running results
-        try {
-          await page.waitForSelector(`::-p-xpath(${pageElement.doneText})`, {
-            visible: true
-          });
-        } catch (error) {
-          errorMsg += `[PageTimeout]`;
-          throw error;
-        }
+        await Promise.race([
+          page.waitForSelector(`::-p-xpath(${pageElement.doneText})`, { visible: true }),
+          util.throwErrorOnElement(page, pageElement.alertWarning)
+        ]);
+
         // get results
         const deNoiseInfoTextSpans = await page.$$eval(pageElement["deNoiseInfoTextRows"], (elements) =>
           elements.map((element) => element.textContent)
@@ -133,19 +122,16 @@ async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
         loadTime,
         buildTime,
         warmupTime,
-        error: errorMsg
       };
       extraResults = util.replaceEmptyData(extraResults);
       console.log("Extra results", extraResults);
     } catch (error) {
-      errorMsg += error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
       }
-      console.warn(errorMsg);
+      console.warn(error.message);
+      _.set(results, [sample, backend, dataType, model, "error"], error.message.substring(0, config.errorMsgMaxLength));
     } finally {
-      _.set(results, [sample, backend, dataType, model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
       if (browser) await browser.close();
     }
   };

@@ -51,14 +51,10 @@ async function fastStyleTransferTest({ backend, dataType, model } = {}) {
           await util.clickElementIfEnabled(page, selector);
         }
 
-        try {
-          await page.waitForSelector(pageElement["computeTime"], {
-            visible: true
-          });
-        } catch (error) {
-          errorMsg += `[PageTimeout]`;
-          throw error;
-        }
+        await Promise.race([
+          page.waitForSelector(pageElement["computeTime"], { visible: true }),
+          util.throwErrorOnElement(page, pageElement.alertWarning)
+        ]);
 
         const computeTime = await page.$eval(pageElement["computeTime"], (el) => el.textContent);
 
@@ -115,7 +111,6 @@ async function fastStyleTransferTest({ backend, dataType, model } = {}) {
       errorMsg = error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
       }
       console.warn(errorMsg);
     } finally {

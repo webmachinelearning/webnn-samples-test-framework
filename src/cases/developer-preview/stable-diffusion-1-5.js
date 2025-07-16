@@ -49,69 +49,65 @@ async function stableDiffusion15Test({ backend, dataType, model } = {}) {
         waitUntil: "networkidle0"
       });
 
-      try {
-        let rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererBefore"],
-          rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
-        );
-        let gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuBefore"],
-          gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
-        );
+      let rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererBefore"],
+        rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
+      );
+      let gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuBefore"],
+        gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
+      );
 
-        // wait for load models button enabled
-        await util.waitForElementEnabled(page, pageElement["loadModelsButton"]);
-        // click load models button
-        await page.click(pageElement["loadModelsButton"]);
-        // wait for generate image button enabled
-        await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
+      await Promise.race([
+        (async () => {
+          await util.waitForElementEnabled(page, pageElement["loadModelsButton"]);
+          await page.click(pageElement["loadModelsButton"]);
+          await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
+        })(),
+        util.throwOnUncaughtException(page)
+      ]);
 
-        rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererAfter"],
-          rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
-        );
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererPeak"],
-          rendererProcessInfo.PeakPagedMemorySize64 ?? rendererProcessInfo.VmHWMKb ?? rendererProcessInfo.error
-        );
+      rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererAfter"],
+        rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
+      );
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererPeak"],
+        rendererProcessInfo.PeakPagedMemorySize64 ?? rendererProcessInfo.VmHWMKb ?? rendererProcessInfo.error
+      );
 
-        gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuAfter"],
-          gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
-        );
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuPeak"],
-          gpuProcessInfo.PeakPagedMemorySize64 ??
-            gpuProcessInfo.peakMemory ??
-            gpuProcessInfo.VmHWMKb ??
-            gpuProcessInfo.error
-        );
-      } catch (error) {
-        errorMsg += `[PageTimeout]`;
-        throw error;
-      }
+      gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuAfter"],
+        gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
+      );
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuPeak"],
+        gpuProcessInfo.PeakPagedMemorySize64 ??
+          gpuProcessInfo.peakMemory ??
+          gpuProcessInfo.VmHWMKb ??
+          gpuProcessInfo.error
+      );
 
       for (let i = 0; i < config[source][sample]["rounds"]; i++) {
         await util.delay(1000);
-        try {
-          // click generateImageButton
-          await page.click(pageElement["generateImageButton"]);
-          // wait results
-          await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
-        } catch (error) {
-          errorMsg += `[PageTimeout]`;
-          throw error;
-        }
+        await Promise.race([
+          (async () => {
+            await page.click(pageElement["generateImageButton"]);
+            // wait results
+            await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
+          })(),
+          util.throwOnUncaughtException(page)
+        ]);
         // get results
         const textEncoderLoad = await page.$eval(pageElement["textEncoderLoad"], (el) => el.textContent);
         const textEncoderFetch = await page.$eval(pageElement["textEncoderFetch"], (el) => el.textContent);

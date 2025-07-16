@@ -63,14 +63,10 @@ async function faceRecognitionTest({ backend, dataType, model } = {}) {
       }
 
       // wait for model running results
-      try {
-        await page.waitForSelector(pageElement["computeTime"], {
-          visible: true
-        });
-      } catch (error) {
-        errorMsg += `[PageTimeout]`;
-        throw error;
-      }
+      await Promise.race([
+        page.waitForSelector(pageElement["computeTime"], { visible: true }),
+        util.throwErrorOnElement(page, pageElement.alertWarning)
+      ]);
 
       // get results
       const computeTime = await page.$eval(pageElement["computeTime"], (el) => el.textContent);
@@ -125,7 +121,6 @@ async function faceRecognitionTest({ backend, dataType, model } = {}) {
       errorMsg += error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
       }
       console.warn(errorMsg);
     } finally {

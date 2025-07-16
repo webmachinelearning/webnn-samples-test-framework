@@ -21,8 +21,8 @@ async function semanticSegmentationTest({ backend, dataType, model } = {}) {
     const args = util.getBrowserArgs(backend);
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     const screenshotFilename = `${source}_${sample}_${backend}_${dataType}_${model}`;
-    let errorMsg = "";
     let browser;
+    let page;
 
     try {
       // launch the browser
@@ -36,7 +36,7 @@ async function semanticSegmentationTest({ backend, dataType, model } = {}) {
         userDataDir
       });
 
-      const page = await browser.newPage();
+      page = await browser.newPage();
       page.setDefaultTimeout(config["timeout"]);
       await page.goto(`${config["samplesBasicUrl"]}${config["samplesUrl"][sample]}`, {
         waitUntil: "networkidle0"
@@ -50,14 +50,10 @@ async function semanticSegmentationTest({ backend, dataType, model } = {}) {
       }
 
       // wait for model running results
-      try {
-        await page.waitForSelector(pageElement["computeTime"], {
-          visible: true
-        });
-      } catch (error) {
-        errorMsg += `[PageTimeout]`;
-        throw error;
-      }
+      await Promise.race([
+        page.waitForSelector(pageElement["computeTime"], { visible: true }),
+        util.throwErrorOnElement(page, pageElement.alertWarning)
+      ]);
 
       // get results
       const loadTime = await page.$eval(pageElement["loadTime"], (el) => el.textContent);
@@ -69,21 +65,18 @@ async function semanticSegmentationTest({ backend, dataType, model } = {}) {
         loadTime: util.formatTimeResult(loadTime),
         buildTime: util.formatTimeResult(buildTime),
         inferenceTime: util.formatTimeResult(computeTime),
-        error: errorMsg
       };
       pageResults = util.replaceEmptyData(pageResults);
       _.set(results, [sample, backend, dataType, model, "inferenceTime"], pageResults.inferenceTime);
 
       console.log("Test Results: ", pageResults);
     } catch (error) {
-      errorMsg = error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
       }
-      console.warn(errorMsg);
+      console.warn(error.message);
+      _.set(results, [sample, backend, dataType, model, "error"], error.message.substring(0, config.errorMsgMaxLength));
     } finally {
-      _.set(results, [sample, backend, dataType, model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
       if (browser) await browser.close();
     }
   };
