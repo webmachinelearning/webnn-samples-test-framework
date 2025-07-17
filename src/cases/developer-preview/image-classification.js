@@ -5,7 +5,6 @@
 //      1. Click `classify` multiple times - repeatInference
 //      2. Change backend or models then click `classify` - switchBackendAndModels
 
-const puppeteer = require("puppeteer");
 const qs = require("qs");
 const util = require("../../utils/util.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
@@ -17,18 +16,6 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
   const sample = "imageClassification";
   let results = {};
   const pageElement = pageElementTotal[sample];
-
-  const launchBrowser = async (args, browserPath, userDataDir) => {
-    return await puppeteer.launch({
-      headless: config.headless,
-      defaultViewport: null,
-      args,
-      executablePath: browserPath,
-      ignoreHTTPSErrors: true,
-      protocolTimeout: config.timeout,
-      userDataDir
-    });
-  };
 
   const getPageResults = async (page) => {
     const performanceResults = {
@@ -52,13 +39,11 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
   const testExecution = async (backend, dataType, model) => {
     console.log(`${source} ${sample} ${backend} ${model} testing...`);
     const screenshotFilename = `${source}_${sample}_${backend}_${dataType}_${model}`;
-    const args = util.getBrowserArgs(backend);
-    const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     let browser;
     let page;
 
     try {
-      browser = await launchBrowser(args, browserPath, userDataDir);
+      browser = await util.launchBrowser(config, backend);
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
 
@@ -99,13 +84,11 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     const testRounds = 5;
     console.log(`Repeat Inference in one page ${source} ${sample} ${backend} ${model} testing...`);
     const screenshotFilename = `${source}_${type}_${sample}_${backend}_${dataType}_${model}`;
-    const args = util.getBrowserArgs(backend);
-    const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     let browser;
     let page;
 
     try {
-      browser = await launchBrowser(args, browserPath, userDataDir);
+      browser = await util.launchBrowser(config, backend);
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
 
@@ -153,13 +136,11 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
 
   const switchBackendAndModels = async () => {
     const type = "switchBackendNModel";
-    const args = util.getBrowserArgs();
-    const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     let browser;
     let page;
 
     try {
-      browser = await launchBrowser(args, browserPath, userDataDir);
+      browser = await util.launchBrowser(config, backend);
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
       await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}`, {

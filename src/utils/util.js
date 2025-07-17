@@ -104,6 +104,19 @@ function getBrowserPath(browser) {
   return { browserPath, userDataDir };
 }
 
+async function launchBrowser(config, backend) {
+  const { browserPath, userDataDir } = getBrowserPath(config.browser);
+  return await puppeteer.launch({
+    headless: config.headless,
+    defaultViewport: null,
+    args: getBrowserArgs(backend),
+    executablePath: browserPath,
+    ignoreHTTPSErrors: true,
+    protocolTimeout: config.timeout,
+    userDataDir
+  });
+}
+
 async function saveJsonFile(data) {
   const jsonData = JSON.stringify(data);
   const formattedJsonData = await prettier.format(jsonData, { parser: "json" });
@@ -713,6 +726,7 @@ async function checkImageGeneration(imagePath) {
 module.exports = {
   getBrowserArgs,
   getBrowserPath,
+  launchBrowser,
   getTimestamp,
   saveJsonFile,
   delay,

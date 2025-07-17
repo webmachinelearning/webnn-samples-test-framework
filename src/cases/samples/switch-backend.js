@@ -1,7 +1,6 @@
 /** Test in sample: image_classification
  * switch different backend or models
  */
-const puppeteer = require("puppeteer");
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
@@ -81,23 +80,12 @@ async function switchBackendTest() {
     return subSampleResults;
   };
 
-  // set browser args, browser path
-  const args = util.getBrowserArgs();
-  const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
   let results = {};
   let browser;
 
   // launch the browser
   try {
-    browser = await puppeteer.launch({
-      headless: config.headless,
-      defaultViewport: null,
-      args,
-      executablePath: browserPath,
-      ignoreHTTPSErrors: true,
-      protocolTimeout: config["timeout"],
-      userDataDir
-    });
+    browser = await util.launchBrowser(config);
     const page = await browser.newPage();
     page.setDefaultTimeout(config["timeout"]);
 
