@@ -47,9 +47,7 @@ function getBrowserPath(browser) {
     userDataDir = config.browserUserDataPath;
   } else {
     userDataDir = path.join(os.tmpdir(), `webnn-sample-test-${browser}`);
-    if (fs.existsSync(userDataDir)) {
-      fs.rmSync(userDataDir, { recursive: true, force: true });
-    }
+    fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 5 });
     fs.mkdirSync(userDataDir, { recursive: true });
   }
 
