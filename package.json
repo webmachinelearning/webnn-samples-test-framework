@@ -13,6 +13,7 @@
   "dependencies": {
     "canvas": "^3.0.1",
     "dayjs": "^1.11.10",
+    "juice": "^11.0.1",
     "liquidjs": "^10.21.1",
     "lodash": "^4.17.21",
     "nodemailer": "^6.9.13",

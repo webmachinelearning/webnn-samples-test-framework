@@ -506,7 +506,7 @@ function calculateAverage(arr) {
   const numericArray = arr.map(parseFloat).filter((value) => !isNaN(value));
   const sum = numericArray.reduce((acc, val) => acc + val, 0);
   const average = numericArray.length > 0 ? sum / numericArray.length : 0;
-  return Number(average.toFixed(2)).toString();
+  return average.toFixed(2);
 }
 
 function getMedianValue(arr) {
@@ -514,13 +514,13 @@ function getMedianValue(arr) {
 
   const mid = Math.floor(sorted.length / 2);
   const result = sorted.length === 0 ? 0 : sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-  return result.toFixed(2).toString();
+  return result.toFixed(2);
 }
 
 function getBestValue(arr) {
   const numericArray = arr.map(parseFloat).filter((value) => !isNaN(value));
   const bestValue = numericArray.length > 0 ? Math.min(...numericArray) : 0;
-  return bestValue.toString();
+  return bestValue.toFixed(2);
 }
 
 // parse the parameter args in cli commands and set the value into the config

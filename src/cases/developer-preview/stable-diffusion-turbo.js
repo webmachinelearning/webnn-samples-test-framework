@@ -245,7 +245,7 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
 
             // Calculate metrics
             const metrics = {
-              first: _value[0],
+              first: Number(_value[0]).toFixed(2),
               average: util.calculateAverage(_value),
               median: util.getMedianValue(_value),
               best: util.getBestValue(_value)
