@@ -167,7 +167,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
       });
 
       for (let _backend in config[source][sample]) {
-        if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
+        if (![/* no cpu button */ "gpu", "npu"].includes(_backend)) continue;
         for (let _dataType in config[source][sample][_backend]) {
           for (let _model of config[source][sample][_backend][_dataType]) {
             console.log(`${type} ${source} ${sample} ${_backend} ${_dataType} ${_model} testing...`);
