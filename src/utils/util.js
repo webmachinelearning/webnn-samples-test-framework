@@ -320,14 +320,7 @@ async function getConfig() {
 
   // CPU
   const cpuData = await si.cpu();
-  let cpuName = cpuData.brand;
-  const cpuManufacturer = cpuData.manufacturer;
-  if (cpuManufacturer.includes("Intel")) {
-    cpuName = cpuName.split(" ").pop();
-  } else if (cpuManufacturer.includes("AMD")) {
-    cpuName = cpuName.split(" ").slice(0, 3).join(" ");
-  }
-  deviceInfo["cpuName"] = cpuName;
+  deviceInfo["cpuName"] = cpuData.brand;
 
   // GPU
   try {
