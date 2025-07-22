@@ -66,8 +66,6 @@ async function switchSampleTest() {
       for (let _dataType in config[source][sampleTest]["samples"][_sample][_backend]) {
         for (let _model of config[source][sampleTest]["samples"][_sample][_backend][_dataType]) {
           const screenshotFilename = `${source}_${sampleTest}_${_sample}_${_backend}_${_dataType}_${_model}`;
-          let errorMsg = "";
-
           try {
             console.log(`${source} ${sampleTest} ${_sample} ${_backend} ${_dataType} ${_model} testing...`);
 
@@ -83,14 +81,10 @@ async function switchSampleTest() {
             }
 
             // wait for model running results
-            try {
-              await page.waitForSelector(pageElement["computeTime"], {
-                visible: true
-              });
-            } catch (error) {
-              errorMsg += `[PageTimeout]`;
-              throw error;
-            }
+            await Promise.race([
+              page.waitForSelector(pageElement["computeTime"], { visible: true }),
+              util.throwErrorOnElement(page, pageElement.alertWarning)
+            ]);
 
             // get results
             const loadTime = await page.$eval(pageElement["loadTime"], (el) => el.textContent);
@@ -115,7 +109,6 @@ async function switchSampleTest() {
               probability1: prob1,
               label2: label2,
               probability2: prob2,
-              error: errorMsg
             };
 
             pageResults = util.replaceEmptyData(pageResults);
@@ -124,18 +117,16 @@ async function switchSampleTest() {
             _.set(results, [_sample, _backend, _dataType, _model, "inferenceTime"], pageResults.inferenceTime);
             await util.saveScreenshot(page, screenshotFilename);
           } catch (error) {
-            errorMsg += error.message;
             if (page) {
               await util.saveScreenshot(page, screenshotFilename);
-              errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
             }
-            console.warn(errorMsg);
-          } finally {
+            console.warn(error.message);
             _.set(
               results,
               [_sample, _backend, _dataType, _model, "error"],
-              errorMsg.substring(0, config.errorMsgMaxLength)
+              error.message.substring(0, config.errorMsgMaxLength)
             );
+          } finally {
           }
         }
       }
@@ -173,14 +164,10 @@ async function switchSampleTest() {
                 await util.clickElementIfEnabled(page, selector);
               }
 
-              try {
-                await page.waitForSelector(pageElement["computeTime"], {
-                  visible: true
-                });
-              } catch (error) {
-                errorMsg += `[PageTimeout]`;
-                throw error;
-              }
+              await Promise.race([
+                page.waitForSelector(pageElement["computeTime"], { visible: true }),
+                util.throwErrorOnElement(page, pageElement.alertWarning)
+              ]);
 
               const computeTime = await page.$eval(pageElement["computeTime"], (el) => el.textContent);
 
@@ -216,7 +203,6 @@ async function switchSampleTest() {
             errorMsg = error.message;
             if (page) {
               await util.saveScreenshot(page, screenshotFilename);
-              errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
             }
             console.warn(errorMsg);
           } finally {
@@ -263,35 +249,28 @@ async function switchSampleTest() {
             }
 
             // wait for model running results
-            try {
-              await page.waitForSelector(pageElement["computeTime"], {
-                visible: true
-              });
-            } catch (error) {
-              throw error;
-            }
+            await Promise.race([
+              page.waitForSelector(pageElement["computeTime"], { visible: true }),
+              util.throwErrorOnElement(page, pageElement.alertWarning)
+            ]);
 
             // save canvas image
             let compareImagesResults = 0;
-            try {
-              const canvasImageName = `${sampleTest}_${_sample}_${_backend}_${_dataType}_${_model}`;
-              const saveCanvasResult = await util.saveCanvasImage(
-                page,
-                pageElement.objectDetectionCanvas,
-                canvasImageName
-              );
+            const canvasImageName = `${sampleTest}_${_sample}_${_backend}_${_dataType}_${_model}`;
+            const saveCanvasResult = await util.saveCanvasImage(
+              page,
+              pageElement.objectDetectionCanvas,
+              canvasImageName
+            );
 
-              // compare canvas to expected canvas
-              const expectedCanvasPath = `${expectedCanvas}/${_sample}_${_model}.png`;
-              compareImagesResults = util.compareImages(saveCanvasResult.canvasPath, expectedCanvasPath);
+            // compare canvas to expected canvas
+            const expectedCanvasPath = `${expectedCanvas}/${_sample}_${_model}.png`;
+            compareImagesResults = util.compareImages(saveCanvasResult.canvasPath, expectedCanvasPath);
 
-              console.log("Compare images results with the template image:", compareImagesResults);
+            console.log("Compare images results with the template image:", compareImagesResults);
 
-              if (compareImagesResults < 95) {
-                errorMsg += "Image result is not the same as template, please check saved images.";
-              }
-            } catch (error) {
-              throw error;
+            if (compareImagesResults < 95) {
+              errorMsg += "Image result is not the same as template, please check saved images.";
             }
 
             // get results
@@ -318,7 +297,6 @@ async function switchSampleTest() {
             errorMsg = error.message;
             if (page) {
               await util.saveScreenshot(page, screenshotFilename);
-              errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
             }
             console.warn(errorMsg);
           } finally {

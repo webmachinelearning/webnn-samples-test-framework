@@ -58,31 +58,21 @@ async function objectDetectionTest({ backend, dataType, model } = {}) {
       }
 
       // wait for model running results
-      try {
-        await page.waitForSelector(pageElement["computeTime"], {
-          visible: true
-        });
-      } catch (error) {
-        throw error;
-      }
+      await page.waitForSelector(pageElement["computeTime"], { visible: true });
 
       // save canvas image
       let compareImagesResults = 0;
-      try {
-        const canvasImageName = `${sample}_${dataType}_${model}`;
-        const saveCanvasResult = await util.saveCanvasImage(page, pageElement.objectDetectionCanvas, canvasImageName);
+      const canvasImageName = `${sample}_${dataType}_${model}`;
+      const saveCanvasResult = await util.saveCanvasImage(page, pageElement.objectDetectionCanvas, canvasImageName);
 
-        // compare canvas to expected canvas
-        const expectedCanvasPath = `${expectedCanvas}/${sample}_${model}.png`;
-        compareImagesResults = util.compareImages(saveCanvasResult.canvasPath, expectedCanvasPath);
+      // compare canvas to expected canvas
+      const expectedCanvasPath = `${expectedCanvas}/${sample}_${model}.png`;
+      compareImagesResults = util.compareImages(saveCanvasResult.canvasPath, expectedCanvasPath);
 
-        console.log("Compare images results with the template image:", compareImagesResults);
+      console.log("Compare images results with the template image:", compareImagesResults);
 
-        if (compareImagesResults < 95) {
-          errorMsg += "Image result is not the same as template, please check saved images.";
-        }
-      } catch (error) {
-        throw error;
+      if (compareImagesResults < 95) {
+        errorMsg += "Image result is not the same as template, please check saved images.";
       }
 
       // get results
@@ -109,7 +99,7 @@ async function objectDetectionTest({ backend, dataType, model } = {}) {
       errorMsg = error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
+        errorMsg += await util.getAlertWarning(page, pageElement.alertWarning);
       }
       console.warn(errorMsg);
     } finally {

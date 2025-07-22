@@ -48,84 +48,79 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
         waitUntil: "networkidle0"
       });
 
-      try {
-        let rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererBefore"],
-          rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
-        );
-        let gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuBefore"],
-          gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
-        );
+      let rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererBefore"],
+        rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
+      );
+      let gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuBefore"],
+        gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
+      );
+      await Promise.race([
+        (async () => {
+          await util.waitForElementEnabled(page, pageElement["loadModelsButton"]);
+          await page.click(pageElement["loadModelsButton"]);
+          await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
+        })(),
+        util.throwOnUncaughtException(page)
+      ]);
 
-        // wait for load_models_button enabled
-        await util.waitForElementEnabled(page, pageElement["loadModelsButton"]);
-        // click load_models_button
-        await page.click(pageElement["loadModelsButton"]);
-        // wait for generateImageButton enabled
-        await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
+      rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererAfter"],
+        rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
+      );
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererPeak"],
+        rendererProcessInfo.PeakPagedMemorySize64 ?? rendererProcessInfo.VmHWMKb ?? rendererProcessInfo.error
+      );
 
-        rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererAfter"],
-          rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
-        );
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererPeak"],
-          rendererProcessInfo.PeakPagedMemorySize64 ?? rendererProcessInfo.VmHWMKb ?? rendererProcessInfo.error
-        );
+      gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuAfter"],
+        gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
+      );
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuPeak"],
+        gpuProcessInfo.PeakPagedMemorySize64 ?? gpuProcessInfo.VmHWMKb ?? gpuProcessInfo.error
+      );
 
-        gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuAfter"],
-          gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
-        );
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuPeak"],
-          gpuProcessInfo.PeakPagedMemorySize64 ?? gpuProcessInfo.VmHWMKb ?? gpuProcessInfo.error
-        );
-      } catch (error) {
-        errorMsg += `[PageTimeout]`;
-        throw error;
-      }
       // loop test
       for (let i = 0; i < config[source][sample]["rounds"]; i++) {
-        try {
-          // wait for generate image button enabled
-          await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
-          // click generate imag button
-          await page.click(pageElement["generateImageButton"]);
-          await util.delay(200);
-          // wait results (image 4 show)
-          await page.waitForFunction(
-            (selector) => {
-              const element = document.querySelector(selector);
-              return element?.textContent.trim().match(/^\d+\.?\d*\s*ms$/);
-            },
-            {},
-            pageElement["data4"]
-          );
-          let image4Time = await page.$eval(pageElement["data4"], (el) => el.textContent);
-          let checkCount = 0;
-          while (image4Time.includes("...")) {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            image4Time = await page.$eval(pageElement["data4"], (el) => el.textContent);
-            checkCount++;
-            if (checkCount > 60) break;
-          }
-          await util.delay(1000);
-        } catch (error) {
-          errorMsg += `[PageTimeout]`;
-          throw error;
-        }
+        await Promise.race([
+          (async () => {
+            await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
+            await page.click(pageElement["generateImageButton"]);
+            await util.delay(200);
+            // wait results (image 4 show)
+            await page.waitForFunction(
+              (selector) => {
+                const element = document.querySelector(selector);
+                return element?.textContent.trim().match(/^\d+\.?\d*\s*ms$/);
+              },
+              {},
+              pageElement["data4"]
+            );
+            let image4Time = await page.$eval(pageElement["data4"], (el) => el.textContent);
+            let checkCount = 0;
+            while (image4Time.includes("...")) {
+              await util.delay(1000);
+              image4Time = await page.$eval(pageElement["data4"], (el) => el.textContent);
+              checkCount++;
+              if (checkCount > 60) break;
+            }
+            await util.delay(1000);
+          })(),
+          util.throwOnUncaughtException(page)
+        ]);
 
         // Verify similarity between generated images and template images
         // Treat as failure if any of the 4 generated images fall below the threshold

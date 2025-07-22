@@ -46,20 +46,16 @@ async function notepadTest({ backend, dataType, model } = {}) {
       await page.goto(`${config["samplesBasicUrl"]}${config["samplesUrl"][sample]}`, {
         waitUntil: "networkidle0"
       });
-      try {
-        // wait for select element display
-        await page.waitForSelector(pageElement["deviceTypeSelect"]);
-        await page.click(pageElement["deviceTypeSelect"]);
-        // wait for option
-        await page.waitForSelector(`${pageElement["deviceTypeSelect"]} option`);
-        // choose option
-        await page.select("select", backend);
-        // wait for results display
-        await util.delay(5000);
-        await page.waitForSelector(pageElement["outputText"]);
-      } catch (error) {
-        throw error;
-      }
+      // wait for select element display
+      await page.waitForSelector(pageElement["deviceTypeSelect"]);
+      await page.click(pageElement["deviceTypeSelect"]);
+      // wait for option
+      await page.waitForSelector(`${pageElement["deviceTypeSelect"]} option`);
+      // choose option
+      await page.select("select", backend);
+      // wait for results display
+      await util.delay(5000);
+      await page.waitForSelector(pageElement["outputText"]);
 
       // get console results
       const actualValue = await page.$eval(pageElement["outputText"], (el) => el.innerHTML);
@@ -81,7 +77,7 @@ async function notepadTest({ backend, dataType, model } = {}) {
       errorMsg = error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
+        errorMsg += await util.getAlertWarning(page, pageElement.alertWarning);
       }
       console.warn(errorMsg);
     } finally {

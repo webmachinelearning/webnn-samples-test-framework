@@ -25,7 +25,6 @@ async function whisperBaseTest({ backend, dataType, model } = {}) {
     // set browser args, browser path
     const args = util.getBrowserArgs(backend);
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -48,70 +47,71 @@ async function whisperBaseTest({ backend, dataType, model } = {}) {
       const urlArguments = config[source][sample]["urlArgs"][backend];
       await page.goto(`${config["developerPreviewBasicUrl"]}${config["developerPreviewUrl"][sample]}${urlArguments}`);
 
-      try {
-        let rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererBefore"],
-          rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
-        );
-        let gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuBefore"],
-          gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
-        );
+      let rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererBefore"],
+        rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
+      );
+      let gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuBefore"],
+        gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
+      );
 
-        // wait for the source load finished (record button enabled)
-        await util.waitForElementEnabled(page, pageElement["recordButton"]);
+      // wait for the source load finished (record button enabled)
+      await Promise.race([
+        util.waitForElementEnabled(page, pageElement["recordButton"]),
+        util.throwOnUncaughtException(page)
+      ]);
 
-        // save finished memory data
-        rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererAfter"],
-          rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
-        );
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryRendererPeak"],
-          rendererProcessInfo.PeakPagedMemorySize64 ?? rendererProcessInfo.VmHWMKb ?? rendererProcessInfo.error
-        );
+      // save finished memory data
+      rendererProcessInfo = processInfo.getRendererProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererAfter"],
+        rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error
+      );
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryRendererPeak"],
+        rendererProcessInfo.PeakPagedMemorySize64 ?? rendererProcessInfo.VmHWMKb ?? rendererProcessInfo.error
+      );
 
-        gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuAfter"],
-          gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
-        );
-        _.set(
-          results,
-          [sample, backend, dataType, "privateMemoryGpuPeak"],
-          gpuProcessInfo.PeakPagedMemorySize64 ?? gpuProcessInfo.VmHWMKb ?? gpuProcessInfo.error
-        );
+      gpuProcessInfo = processInfo.getGpuProcessInfo(browserProcess);
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuAfter"],
+        gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
+      );
+      _.set(
+        results,
+        [sample, backend, dataType, "privateMemoryGpuPeak"],
+        gpuProcessInfo.PeakPagedMemorySize64 ?? gpuProcessInfo.VmHWMKb ?? gpuProcessInfo.error
+      );
 
-        // upload an audio
-        const inputElement = await page.$(pageElement["uploadInput"]);
-        const audioPath = path.join(
-          path.resolve(__dirname),
-          `../../../assets/audio/${config[source][sample]["examples"][0].name}`
-        );
+      // upload an audio
+      const inputElement = await page.$(pageElement["uploadInput"]);
+      const audioPath = path.join(
+        path.resolve(__dirname),
+        "../../../assets/audio",
+        config[source][sample]["examples"][0].name
+      );
 
-        await inputElement.uploadFile(audioPath);
-        // wait for the results show (record_button enabled)
-        await util.waitForElementEnabled(page, pageElement["recordButton"]);
-      } catch (error) {
-        error.message = `[PageTimeout]`;
-        throw error;
-      }
+      await inputElement.uploadFile(audioPath);
+      // wait for the results show (record_button enabled)
+      await Promise.race([
+        util.waitForElementEnabled(page, pageElement["recordButton"]),
+        util.throwOnUncaughtException(page)
+      ]);
 
       // get results
       const outputText = await page.$eval(pageElement["outputText"], (el) => el.textContent);
       const expectedText = config[source][sample]["examples"][0].expectedValue;
 
       if (outputText !== expectedText) {
-        errorMsg = `Output text: ${outputText}, which is not the same as expected.`;
-        throw error;
+        throw Error(`Unexpected recognition result "${outputText}", expected "${expectedText}"`);
       }
 
       const latency = await page.$eval(pageElement["latency"], (el) => el.textContent);
@@ -129,19 +129,25 @@ async function whisperBaseTest({ backend, dataType, model } = {}) {
         }
       }
     } catch (error) {
-      errorMsg += error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
       }
-    } finally {
       if (model) {
-        _.set(results, [sample, backend, dataType, model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
+        _.set(
+          results,
+          [sample, backend, dataType, model, "error"],
+          error.message.substring(0, config.errorMsgMaxLength)
+        );
       } else {
         for (let _model of modelNameArray) {
-          _.set(results, [sample, backend, dataType, _model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
+          _.set(
+            results,
+            [sample, backend, dataType, _model, "error"],
+            error.message.substring(0, config.errorMsgMaxLength)
+          );
         }
       }
-
+    } finally {
       if (browser) await browser.close();
     }
   };

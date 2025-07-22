@@ -82,7 +82,13 @@ function getBrowserPath(browser) {
       baseDir = process.env.PROGRAMFILES;
     }
     browserExeName = browser.includes("chrome") ? "chrome.exe" : "msedge.exe";
-    browserPath = path.join(baseDir, browser.includes("edge") ? "Microsoft" : "Google", browserName, "Application", browserExeName);
+    browserPath = path.join(
+      baseDir,
+      browser.includes("edge") ? "Microsoft" : "Google",
+      browserName,
+      "Application",
+      browserExeName
+    );
   } else if (deviceInfo.platform === "linux") {
     browserExeName = browserName;
     browserPath = path.join("/usr/bin", browserExeName);
@@ -250,6 +256,27 @@ async function getAlertWarning(page, alertLocation) {
   }
 }
 
+async function throwErrorOnElement(page, element) {
+  await page.waitForSelector(element, { visible: true });
+  const error = await page.$eval(element, (el) => el.textContent);
+  throw Error(error);
+}
+
+async function throwOnDevelopmentPreviewError(page, element) {
+  await page.waitForFunction(
+    (selector) => document.querySelector(selector).textContent !== "WebNN supported",
+    {},
+    element
+  );
+  throw Error(await page.$eval(element, (el) => el.textContent));
+}
+
+async function throwOnUncaughtException(page) {
+  return new Promise((resolve, reject) => {
+    page.on("pageerror", reject);
+  });
+}
+
 // judge element classlist has "disabled" value
 async function judgeElementClickable(page, pageElement, parent = false) {
   let isDisabled = false;
@@ -400,11 +427,12 @@ async function getConfig() {
       const info = execSync(`powershell -Command "${command.replace(/\n+/g, " ")}"`)
         .toString()
         .trim();
-
-      const npuInfo = JSON.parse(info);
-      deviceInfo["npuName"] = npuInfo["DeviceName"];
-      deviceInfo["npuManufacturer"] = npuInfo["Manufacturer"];
-      deviceInfo["npuDriverVersion"] = npuInfo["DriverVersion"];
+      if (info) {
+        const npuInfo = JSON.parse(info);
+        deviceInfo["npuName"] = npuInfo["DeviceName"];
+        deviceInfo["npuManufacturer"] = npuInfo["Manufacturer"];
+        deviceInfo["npuDriverVersion"] = npuInfo["DriverVersion"];
+      }
     }
   } catch (error) {
     console.error(`Error occurred while getting NPU info\n. Error Details: ${error}`);
@@ -692,6 +720,9 @@ module.exports = {
   replaceEmptyData,
   saveScreenshot,
   getAlertWarning,
+  throwErrorOnElement,
+  throwOnDevelopmentPreviewError,
+  throwOnUncaughtException,
   getConfig,
   saveCanvasImage,
   compareImages,

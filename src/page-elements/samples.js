@@ -1,6 +1,6 @@
 const pageElement = {
   // public element
-  alertWaring: ".alert-warning > span", // css selector
+  alertWarning: ".alert-warning > span", // css selector
   // model load result
   loadTime: "#loadTime",
   buildTime: "#buildTime",

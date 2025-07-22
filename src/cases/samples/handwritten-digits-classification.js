@@ -36,7 +36,6 @@ async function handwrittenDigitsClassificationTest({ backend, dataType, model } 
     // set browser args, browser path
     const args = util.getBrowserArgs(backend);
     const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -70,15 +69,13 @@ async function handwrittenDigitsClassificationTest({ backend, dataType, model } 
       await util.clickElementIfEnabled(page, pageElement[backend]);
 
       // wait for model building
-      try {
-        await page.waitForSelector(pageElement["handwrittenDigitsBuildTime"], {
+      await Promise.race([
+        page.waitForSelector(pageElement["handwrittenDigitsBuildTime"], {
           visible: true,
           timeout: config["timeout"]
-        });
-      } catch (error) {
-        errorMsg += `[PageTimeout]`;
-        throw error;
-      }
+        }),
+        util.throwErrorOnElement(page, pageElement.alertWarning)
+      ]);
 
       // loop test
       for (let i = 0; i < config[source][sample]["rounds"]; i++) {
@@ -90,14 +87,10 @@ async function handwrittenDigitsClassificationTest({ backend, dataType, model } 
         // click predict button
         await page.click(pageElement["predictButton"]);
         // wait for prediction result
-        try {
-          await page.waitForSelector(pageElement["handwrittenDigitsInferenceTime"], {
-            visible: true
-          });
-        } catch (error) {
-          errorMsg += `[PageTimeout]`;
-          throw error;
-        }
+        await Promise.race([
+          page.waitForSelector(pageElement["handwrittenDigitsInferenceTime"], { visible: true }),
+          util.throwErrorOnElement(page, pageElement.alertWarning)
+        ]);
 
         // get results
         const inferenceTime = await page.$eval(pageElement["handwrittenDigitsInferenceTime"], (el) => el.textContent);
@@ -109,13 +102,8 @@ async function handwrittenDigitsClassificationTest({ backend, dataType, model } 
         const prob2 = await page.$eval(pageElement["prob2"], (el) => el.textContent);
 
         // save canvas image
-
-        try {
-          const canvasImageName = `${sample}_${backend}_round${i}`;
-          await util.saveCanvasImage(page, pageElement.handwrittenDigitsClassificationCanvas, canvasImageName);
-        } catch (error) {
-          throw error;
-        }
+        const canvasImageName = `${sample}_${backend}_round${i}`;
+        await util.saveCanvasImage(page, pageElement.handwrittenDigitsClassificationCanvas, canvasImageName);
 
         // set results for this round test
         let pageResults = {
@@ -135,14 +123,12 @@ async function handwrittenDigitsClassificationTest({ backend, dataType, model } 
         addValueToPath(performResultsPath, pageResults.inferenceTime);
       }
     } catch (error) {
-      errorMsg = error.message;
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
-        errorMsg += await util.getAlertWarning(page, pageElement.alertWaring);
       }
-      console.warn(errorMsg);
+      console.warn(error.message);
+      _.set(results, [sample, backend, dataType, model, "error"], error.message.substring(0, config.errorMsgMaxLength));
     } finally {
-      _.set(results, [sample, backend, dataType, model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
       if (browser) await browser.close();
     }
   };
