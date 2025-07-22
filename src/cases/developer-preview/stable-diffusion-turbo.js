@@ -137,104 +137,31 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
           }
         }
 
-        // get results
-        const textEncoderFetch = await page.$eval(pageElement["textEncoderFetch"], (el) => el.textContent);
-        const textEncoderCreate = await page.$eval(pageElement["textEncoderCreate"], (el) => el.textContent);
-        const unetFetch = await page.$eval(pageElement["unetFetch"], (el) => el.textContent);
-        const unetCreate = await page.$eval(pageElement["unetCreate"], (el) => el.textContent);
-        const vaeFetch = await page.$eval(pageElement["vaeFetch"], (el) => el.textContent);
-        const vaeCreate = await page.$eval(pageElement["vaeCreate"], (el) => el.textContent);
-        const scFetch = await page.$eval(pageElement["scFetch"], (el) => el.textContent);
-        const scCreate = await page.$eval(pageElement["scCreate"], (el) => el.textContent);
+        const loadResults = {};
+        for (const model of ["textEncoder", "unet", "vae", "sc"]) {
+          for (const method of ["Fetch", "Create"]) {
+            const key = model + method;
+            loadResults[key] = await page.$eval(pageElement[key], (el) => el.textContent);
+          }
+        }
 
-        const loadResults = {
-          textEncoderFetch,
-          textEncoderCreate,
-          unetFetch,
-          unetCreate,
-          vaeFetch,
-          vaeCreate,
-          scFetch,
-          scCreate
-        };
-
-        const textEncoderRun1 = await page.$eval(pageElement["textEncoderRun1"], (el) => el.textContent);
-        const unetRun1 = await page.$eval(pageElement["unetRun1"], (el) => el.textContent);
-        const vaeRun1 = await page.$eval(pageElement["vaeRun1"], (el) => el.textContent);
-        const runTotal1 = await page.$eval(pageElement["runTotal1"], (el) => el.textContent);
-        const scRun1 = await page.$eval(pageElement["scRun1"], (el) => el.textContent);
-        const executionImage1 = {
-          textEncoderRun1,
-          unetRun1,
-          vaeRun1,
-          runTotal1,
-          scRun1
-        };
-
-        const textEncoderRun2 = await page.$eval(pageElement["textEncoderRun2"], (el) => el.textContent);
-        const unetRun2 = await page.$eval(pageElement["unetRun2"], (el) => el.textContent);
-        const vaeRun2 = await page.$eval(pageElement["vaeRun2"], (el) => el.textContent);
-        const runTotal2 = await page.$eval(pageElement["runTotal2"], (el) => el.textContent);
-        const scRun2 = await page.$eval(pageElement["scRun2"], (el) => el.textContent);
-        const executionImage2 = {
-          textEncoderRun2,
-          unetRun2,
-          vaeRun2,
-          runTotal2,
-          scRun2
-        };
-
-        const textEncoderRun3 = await page.$eval(pageElement["textEncoderRun3"], (el) => el.textContent);
-        const unetRun3 = await page.$eval(pageElement["unetRun3"], (el) => el.textContent);
-        const vaeRun3 = await page.$eval(pageElement["vaeRun3"], (el) => el.textContent);
-        const runTotal3 = await page.$eval(pageElement["runTotal3"], (el) => el.textContent);
-        const scRun3 = await page.$eval(pageElement["scRun3"], (el) => el.textContent);
-        const executionImage3 = {
-          textEncoderRun3,
-          unetRun3,
-          vaeRun3,
-          runTotal3,
-          scRun3
-        };
-
-        const textEncoderRun4 = await page.$eval(pageElement["textEncoderRun4"], (el) => el.textContent);
-        const unetRun4 = await page.$eval(pageElement["unetRun4"], (el) => el.textContent);
-        const vaeRun4 = await page.$eval(pageElement["vaeRun4"], (el) => el.textContent);
-        const runTotal4 = await page.$eval(pageElement["runTotal4"], (el) => el.textContent);
-        const scRun4 = await page.$eval(pageElement["scRun4"], (el) => el.textContent);
-        const executionImage4 = {
-          textEncoderRun4,
-          unetRun4,
-          vaeRun4,
-          runTotal4,
-          scRun4
-        };
-
-        // set results
-        let executionResults = {
-          executionImage1,
-          executionImage2,
-          executionImage3,
-          executionImage4
-        };
-
-        // Initialize the reformatting result
-        const modelsExecutionResults = {
+        const executionResults = {
           textEncoder: [],
           unet: [],
           vaeDecoder: [],
           safetyChecker: []
         };
 
-        // Map the raw data to reformatted structure
-        Object.entries(executionResults).forEach(([execution, data]) => {
-          modelsExecutionResults["textEncoder"].push(data[`textEncoderRun${execution.slice(-1)}`]);
-          modelsExecutionResults["unet"].push(data[`unetRun${execution.slice(-1)}`]);
-          modelsExecutionResults["vaeDecoder"].push(data[`vaeRun${execution.slice(-1)}`]);
-          modelsExecutionResults["safetyChecker"].push(data[`scRun${execution.slice(-1)}`]);
-        });
+        for (let i = 1; i <= 4; i++) {
+          executionResults.textEncoder.push(
+            await page.$eval(pageElement[`textEncoderRun${i}`], (el) => el.textContent)
+          );
+          executionResults.unet.push(await page.$eval(pageElement[`unetRun${i}`], (el) => el.textContent));
+          executionResults.vaeDecoder.push(await page.$eval(pageElement[`vaeRun${i}`], (el) => el.textContent));
+          executionResults.safetyChecker.push(await page.$eval(pageElement[`scRun${i}`], (el) => el.textContent));
+        }
 
-        Object.entries(modelsExecutionResults).forEach(([_model, _value]) => {
+        Object.entries(executionResults).forEach(([_model, _value]) => {
           if (!model || model === _model) {
             const pathArr = [sample, backend, dataType, _model, "inferenceTime"];
 
