@@ -2,7 +2,6 @@
  * Test different samples in the same browser tab
  * Supported Sample list: image_classification, fast_style_transfer, object_detection
  */
-const puppeteer = require("puppeteer");
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
@@ -14,22 +13,11 @@ async function switchSampleTest() {
 
   const source = "samples";
   const sampleTest = "switchSampleTest";
-  const args = util.getBrowserArgs();
-  const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
   const expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas");
   totalResults[sampleTest] = {};
 
   console.log(`${source} ${sampleTest} testing...`);
-  // launch the browser
-  let browser = await puppeteer.launch({
-    headless: config.headless,
-    defaultViewport: null,
-    args,
-    executablePath: browserPath,
-    ignoreHTTPSErrors: true,
-    protocolTimeout: config["timeout"],
-    userDataDir
-  });
+  let browser = await util.launchBrowser(config, backend);
 
   const page = await browser.newPage();
   page.setDefaultTimeout(config["timeout"]);

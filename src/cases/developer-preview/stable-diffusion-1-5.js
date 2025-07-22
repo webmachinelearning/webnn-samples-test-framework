@@ -1,4 +1,3 @@
-const puppeteer = require("puppeteer");
 const util = require("../../utils/util.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 const _ = require("lodash");
@@ -21,25 +20,12 @@ async function stableDiffusion15Test({ backend, dataType, model } = {}) {
     const screenshotFilename = model
       ? `${source}_${sample}_${backend}_${dataType}_${model}`
       : `${source}_${sample}_${backend}_${dataType}`;
-
-    const args = util.getBrowserArgs(backend);
-    const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     let errorMsg = "";
     let browser;
     let page;
 
     try {
-      // launch the browser
-      browser = await puppeteer.launch({
-        headless: config.headless,
-        defaultViewport: null,
-        args,
-        executablePath: browserPath,
-        ignoreHTTPSErrors: true,
-        protocolTimeout: config["timeout"],
-        userDataDir
-      });
-
+      browser = await util.launchBrowser(config, backend);
       page = await browser.newPage();
       page.setDefaultTimeout(config["timeout"]);
 

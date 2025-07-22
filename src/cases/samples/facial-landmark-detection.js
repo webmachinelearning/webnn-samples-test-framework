@@ -1,4 +1,3 @@
-const puppeteer = require("puppeteer");
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
@@ -27,26 +26,12 @@ async function facialLandmarkDetectionTest({ backend, dataType, model } = {}) {
     // simpleCnnSsdMobileNetV2Face -> ssdMobileNetV2Face
     const modelName =
       model.replace(`${facialLandmark}`, "").charAt(0).toLowerCase() + model.replace(`${facialLandmark}`, "").slice(1);
-
-    // set browser args, browser path
-    const args = util.getBrowserArgs(backend);
-    const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     let errorMsg = "";
     let browser;
     let page;
 
     try {
-      // launch the browser
-      browser = await puppeteer.launch({
-        headless: config.headless,
-        defaultViewport: null,
-        args,
-        executablePath: browserPath,
-        ignoreHTTPSErrors: true,
-        protocolTimeout: config["timeout"],
-        userDataDir
-      });
-
+      browser = await util.launchBrowser(config, backend);
       page = await browser.newPage();
       page.setDefaultTimeout(config["timeout"]);
       await page.goto(`${config["samplesBasicUrl"]}${config["samplesUrl"][sample]}`, {

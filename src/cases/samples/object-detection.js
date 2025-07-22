@@ -1,4 +1,3 @@
-const puppeteer = require("puppeteer");
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
@@ -29,16 +28,7 @@ async function objectDetectionTest({ backend, dataType, model } = {}) {
     let page;
 
     try {
-      // launch the browser
-      browser = await puppeteer.launch({
-        headless: config.headless,
-        defaultViewport: null,
-        args,
-        executablePath: browserPath,
-        ignoreHTTPSErrors: true,
-        protocolTimeout: config["timeout"],
-        userDataDir
-      });
+      browser = await util.launchBrowser(config, backend);
       // open a new page
       page = await browser.newPage();
       // set the default timeout time for the page
