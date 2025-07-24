@@ -5,7 +5,7 @@ const config = require("../../../config.json");
 
 async function noiseSuppressionRnNoiseTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "noiseSuppressionRnNoise";
+  const sample = "noise-suppression-rnnoise";
   const results = {};
 
   // Function to initialize the structure if it doesn't exist

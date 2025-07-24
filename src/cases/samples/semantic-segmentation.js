@@ -5,7 +5,7 @@ const config = require("../../../config.json");
 
 async function semanticSegmentationTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "semanticSegmentation";
+  const sample = "semantic-segmentation";
   let results = {};
 
   const testExecution = async (backend, dataType, model) => {

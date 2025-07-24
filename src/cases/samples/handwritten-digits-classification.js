@@ -5,7 +5,7 @@ const config = require("../../../config.json");
 
 async function handwrittenDigitsClassificationTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "handwrittenDigitsClassification";
+  const sample = "handwritten-digits-classification";
   const results = {};
 
   // Function to initialize the structure if it doesn't exist

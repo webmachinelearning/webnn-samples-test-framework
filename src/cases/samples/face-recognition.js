@@ -6,7 +6,7 @@ const config = require("../../../config.json");
 
 async function faceRecognitionTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "faceRecognition";
+  const sample = "face-recognition";
   const validFaceRecognitionArray = ["faceNet"];
   const results = {};
 

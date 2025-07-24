@@ -8,33 +8,9 @@ const env = require("../env.json");
 const util = require("./utils/util.js");
 const { renderResultsAsHTML, report, scpUpload } = require("./utils/report.js");
 
-const SAMPLES_NAME_JS_PATH_MAPPING = {
-  imageClassification: __dirname + "/cases/samples/image-classification.js",
-  fastStyleTransfer: __dirname + "/cases/samples/fast-style-transfer.js",
-  objectDetection: __dirname + "/cases/samples/object-detection.js",
-  codeEditor: __dirname + "/cases/samples/code-editor.js",
-  notepad: __dirname + "/cases/samples/notepad.js",
-  semanticSegmentation: __dirname + "/cases/samples/semantic-segmentation.js",
-  faceRecognition: __dirname + "/cases/samples/face-recognition.js",
-  facialLandmarkDetection: __dirname + "/cases/samples/facial-landmark-detection.js",
-  handwrittenDigitsClassification: __dirname + "/cases/samples/handwritten-digits-classification.js",
-  noiseSuppressionNsNet2: __dirname + "/cases/samples/noise-suppression-nsnet2.js",
-  noiseSuppressionRnNoise: __dirname + "/cases/samples/noise-suppression-rnnoise.js",
-  switchSampleTest: __dirname + "/cases/samples/switch-sample.js",
-  switchBackendTest: __dirname + "/cases/samples/switch-backend.js"
-};
-
-const DEVELOPER_PREVIEW_NAME_JS_PATH_MAPPING = {
-  stableDiffusion15: "./cases/developer-preview/stable-diffusion-1-5.js",
-  stableDiffusionTurbo: "./cases/developer-preview/stable-diffusion-turbo.js",
-  segmentAnything: "./cases/developer-preview/segment-anything.js",
-  whisperBase: "./cases/developer-preview/whisper-base.js",
-  imageClassification: "./cases/developer-preview/image-classification.js"
-};
-
 const parseFilter = (filter) => {
   const regexPattern =
-    /^(samples|developerPreview)-([a-zA-Z0-9]+)-(cpu|gpu|npu)(?:-(fp16|fp32|_))?(?:-([a-zA-Z0-9_]+|_))?$/;
+    /^(samples|developer-preview)-([a-zA-Z0-9-]+)-(cpu|gpu|npu)(?:-(fp16|fp32|_))?(?:-([a-zA-Z0-9_]+|_))?$/;
   const match = filter.match(regexPattern);
   if (!match) {
     console.error("No match found for:", filter);
@@ -53,17 +29,7 @@ const parseFilter = (filter) => {
 
 const executeTestModule = async (sampleName, source, backend, dataType, model, results) => {
   try {
-    const testFileRoot =
-      source === "samples"
-        ? SAMPLES_NAME_JS_PATH_MAPPING[sampleName]
-        : DEVELOPER_PREVIEW_NAME_JS_PATH_MAPPING[sampleName];
-
-    if (!testFileRoot) {
-      console.warn(`Could not find execution script for '${sampleName}'.`);
-      return;
-    }
-
-    const testModule = require(testFileRoot);
+    const testModule = require(`./cases/${source}/${sampleName}.js`);
     const resultsSamples = await testModule({ backend, dataType, model });
     _.merge(results[source], resultsSamples);
   } catch (error) {
@@ -106,10 +72,10 @@ const main = async () => {
       results.deviceInfo = util.deviceInfo;
 
       const SAMPLES = config?.["samples"];
-      const DEVELOPER_PREVIEW_DEMO = config?.["developerPreview"];
+      const DEVELOPER_PREVIEW_DEMO = config?.["developer-preview"];
 
       await executeSampleTests(SAMPLES, "samples", results);
-      await executeSampleTests(DEVELOPER_PREVIEW_DEMO, "developerPreview", results);
+      await executeSampleTests(DEVELOPER_PREVIEW_DEMO, "developer-preview", results);
     }
 
     const jsonPath = await util.saveJsonFile(results);
@@ -134,5 +100,3 @@ const main = async () => {
 };
 
 main();
-
-module.exports = SAMPLES_NAME_JS_PATH_MAPPING;

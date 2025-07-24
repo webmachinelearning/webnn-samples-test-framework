@@ -4,8 +4,8 @@ const _ = require("lodash");
 const config = require("../../../config.json");
 
 async function segmentAnythingTest({ backend, dataType, model } = {}) {
-  const source = "developerPreview";
-  const sample = "segmentAnything";
+  const source = "developer-preview";
+  const sample = "segment-anything";
   let results = {};
 
   const pageElement = pageElementTotal[sample];

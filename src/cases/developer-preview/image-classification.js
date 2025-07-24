@@ -12,8 +12,8 @@ const _ = require("lodash");
 const config = require("../../../config.json");
 
 async function imageClassificationPreviewTest({ backend, dataType, model } = {}) {
-  const source = "developerPreview";
-  const sample = "imageClassification";
+  const source = "developer-preview";
+  const sample = "image-classification";
   let results = {};
   const pageElement = pageElementTotal[sample];
 

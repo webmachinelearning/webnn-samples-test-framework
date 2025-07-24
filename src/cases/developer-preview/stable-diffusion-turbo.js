@@ -5,8 +5,8 @@ const config = require("../../../config.json");
 const processInfo = require("../../utils/process.js");
 
 async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
-  let source = "developerPreview";
-  let sample = "stableDiffusionTurbo";
+  let source = "developer-preview";
+  let sample = "stable-diffusion-turbo";
   let results = {};
   const threshold = 75;
 

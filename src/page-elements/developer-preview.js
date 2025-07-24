@@ -1,5 +1,5 @@
 const pageElements = {
-  stableDiffusion15: {
+  "stable-diffusion-1-5": {
     loadModelsButton: "#load_models",
     generateImageButton: "#generate_next_image",
     progressBarLabel: "#progress-bar-label",
@@ -31,7 +31,7 @@ const pageElements = {
     totalCreate: "#totalcreate",
     totalRun: "#totalrun"
   },
-  stableDiffusionTurbo: {
+  "stable-diffusion-turbo": {
     loadModelsButton: "#load",
     generateImageButton: "#generate",
     // Text Encoder
@@ -78,13 +78,13 @@ const pageElements = {
     imgCanvas2: "#img_canvas_2",
     imgCanvas3: "#img_canvas_3"
   },
-  segmentAnything: {
+  "segment-anything": {
     logPanel: "#log",
     progressInfo: "#progress-info",
     imgCanvas: "#img_canvas",
     decoderLatency: "#decoder_latency"
   },
-  whisperBase: {
+  "whisper-base": {
     uploadButton: "#label-file-upload",
     uploadInput: "#file-upload",
     recordButton: "#record",
@@ -92,7 +92,7 @@ const pageElements = {
     outputText: "#outputText",
     latency: "#latency"
   },
-  imageClassification: {
+  "image-classification": {
     alertWaring: "#info",
     gpu: "#webnn_gpu",
     npu: "#webnn_npu",

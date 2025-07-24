@@ -5,7 +5,7 @@ const config = require("../../../config.json");
 
 async function imageClassificationTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "imageClassification";
+  const sample = "image-classification";
   const results = {};
 
   const testExecution = async (backend, dataType, model) => {

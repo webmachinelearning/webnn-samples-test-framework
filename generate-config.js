@@ -43,10 +43,10 @@ function filterSamplesWithDevices(config, devices) {
   }
 
   result.samples = filterDevice(result.samples, devices);
-  result.developerPreview = filterDevice(result.developerPreview, devices);
+  result["developer-preview"] = filterDevice(result["developer-preview"], devices);
 
   removeInvalidSamples(result.samples, devices);
-  removeInvalidSamples(result.developerPreview, devices);
+  removeInvalidSamples(result["developer-preview"], devices);
 
   return result;
 }
@@ -65,28 +65,28 @@ const ORIGINAL_CONFIG = {
   imageCompareThreshold: 0.1,
   samplesBasicUrl: "https://webmachinelearning.github.io/webnn-samples",
   samplesUrl: {
-    faceRecognition: "/face_recognition/",
-    facialLandmarkDetection: "/facial_landmark_detection/",
-    fastStyleTransfer: "/style_transfer/",
-    handwrittenDigitsClassification: "/lenet/",
-    imageClassification: "/image_classification/?numRuns=50",
-    objectDetection: "/object_detection/",
-    semanticSegmentation: "/semantic_segmentation/",
-    noiseSuppressionNsNet2: "/nsnet2/",
-    noiseSuppressionRnNoise: "/rnnoise/",
-    codeEditor: "/code/",
+    "face-recognition": "/face_recognition/",
+    "facial-landmark-detection": "/facial_landmark_detection/",
+    "fast-style-transfer": "/style_transfer/",
+    "handwritten-digits-classification": "/lenet/",
+    "image-classification": "/image_classification/?numRuns=50",
+    "object-detection": "/object_detection/",
+    "semantic-segmentation": "/semantic_segmentation/",
+    "noise-suppression-nsnet2": "/nsnet2/",
+    "noise-suppression-rnnoise": "/rnnoise/",
+    "code-editor": "/code/",
     notepad: "/nnotepad/"
   },
   developerPreviewBasicUrl: "https://microsoft.github.io/webnn-developer-preview",
   developerPreviewUrl: {
-    stableDiffusion15: "/demos/stable-diffusion-1.5/",
-    stableDiffusionTurbo: "/demos/sd-turbo/",
-    segmentAnything: "/demos/segment-anything/",
-    whisperBase: "/demos/whisper-base/",
-    imageClassification: "/demos/image-classification/"
+    "stable-diffusion-1-5": "/demos/stable-diffusion-1.5/",
+    "stable-diffusion-turbo": "/demos/sd-turbo/",
+    "segment-anything": "/demos/segment-anything/",
+    "whisper-base": "/demos/whisper-base/",
+    "image-classification": "/demos/image-classification/"
   },
   samples: {
-    faceRecognition: {
+    "face-recognition": {
       cpu: {
         fp32: ["faceNetSsdMobileNetV2Face"]
       },
@@ -94,7 +94,7 @@ const ORIGINAL_CONFIG = {
         fp32: ["faceNetSsdMobileNetV2Face"]
       }
     },
-    facialLandmarkDetection: {
+    "facial-landmark-detection": {
       cpu: {
         fp32: ["simpleCnnSsdMobileNetV2Face"]
       },
@@ -102,7 +102,7 @@ const ORIGINAL_CONFIG = {
         fp32: ["simpleCnnSsdMobileNetV2Face"]
       }
     },
-    fastStyleTransfer: {
+    "fast-style-transfer": {
       examples: ["starryNight"],
       cpu: {
         fp32: ["fastStyleTransfer"]
@@ -111,12 +111,12 @@ const ORIGINAL_CONFIG = {
         fp32: ["fastStyleTransfer"]
       }
     },
-    handwrittenDigitsClassification: {
+    "handwritten-digits-classification": {
       rounds: 3,
       cpu: { fp32: ["leNet"] },
       gpu: { fp32: ["leNet"] }
     },
-    imageClassification: {
+    "image-classification": {
       cpu: {
         fp32: ["mobileNetV2", "squeezeNet", "resNet50V2"]
       },
@@ -128,7 +128,7 @@ const ORIGINAL_CONFIG = {
         fp16: ["mobileNetV2", "resNet50V1", "efficientNet"]
       }
     },
-    objectDetection: {
+    "object-detection": {
       cpu: {
         fp32: ["tinyYoloV2", "ssdMobileNetV1"]
       },
@@ -140,21 +140,21 @@ const ORIGINAL_CONFIG = {
         fp16: ["ssdMobileNetV1"]
       }
     },
-    semanticSegmentation: {
+    "semantic-segmentation": {
       cpu: { fp32: ["deepLabV3MobileNetV2"] },
       gpu: { fp32: ["deepLabV3MobileNetV2"] }
     },
-    noiseSuppressionNsNet2: {
+    "noise-suppression-nsnet2": {
       examples: ["babbleNoise", "carNoise", "streetNoise"],
       cpu: { fp32: ["nsNet2"] },
       gpu: { fp32: ["nsNet2"] }
     },
-    noiseSuppressionRnNoise: {
+    "noise-suppression-rnnoise": {
       examples: ["backgroundNoise1", "backgroundNoise2", "backgroundNoise3"],
       cpu: { fp32: ["rnNoise"] },
       gpu: { fp32: ["rnNoise"] }
     },
-    codeEditor: {
+    "code-editor": {
       gpu: { _: ["_"] },
       examples: [
         {
@@ -173,7 +173,7 @@ const ORIGINAL_CONFIG = {
       expectedValue:
         "dataType: float32<br>shape: [2]<br>tensor: [1, 2]<br><br>dataType: float32<br>shape: [2]<br>tensor: [3, 4]"
     },
-    switchSampleTest: {
+    "switch-sample": {
       order: ["imageClassification", "fastStyleTransfer", "objectDetection"],
       samples: {
         imageClassification: {
@@ -197,7 +197,7 @@ const ORIGINAL_CONFIG = {
         }
       }
     },
-    switchBackendTest: {
+    "switch-backend": {
       rounds: 50,
       samples: {
         imageClassification: {
@@ -214,8 +214,8 @@ const ORIGINAL_CONFIG = {
       }
     }
   },
-  developerPreview: {
-    stableDiffusion15: {
+  "developer-preview": {
+    "stable-diffusion-1-5": {
       gpu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
       rounds: 2,
       urlArgs: {
@@ -223,7 +223,7 @@ const ORIGINAL_CONFIG = {
         npu: ""
       }
     },
-    stableDiffusionTurbo: {
+    "stable-diffusion-turbo": {
       gpu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
       rounds: 2,
       urlArgs: {
@@ -231,7 +231,7 @@ const ORIGINAL_CONFIG = {
         npu: ""
       }
     },
-    segmentAnything: {
+    "segment-anything": {
       gpu: { fp16: ["encoder", "decoder"] },
       urlArgs: { gpu: "", npu: "" },
       imageSpot: {
@@ -239,7 +239,7 @@ const ORIGINAL_CONFIG = {
         y: 0.5
       }
     },
-    whisperBase: {
+    "whisper-base": {
       gpu: { fp16: ["encoder", "decoder", "decoderKvCache"] },
       npu: { fp16: ["encoder", "decoder", "decoderKvCache"] },
       urlArgs: {
@@ -254,7 +254,7 @@ const ORIGINAL_CONFIG = {
         }
       ]
     },
-    imageClassification: {
+    "image-classification": {
       cpu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
       gpu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
       npu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
@@ -264,7 +264,7 @@ const ORIGINAL_CONFIG = {
         npu: { provider: "webnn", devicetype: "npu", run: 50 },
         mobileNetV2: { model: "mobilenet-v2" },
         resNet50: { model: "resnet-50" },
-        efficientNetLite4: { model: "efficientnet-lite4" },
+        efficientNetLite4: { model: "efficientnet-lite4" }
       }
     }
   }

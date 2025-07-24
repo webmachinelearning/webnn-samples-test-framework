@@ -6,7 +6,7 @@ const config = require("../../../config.json");
 
 async function objectDetectionTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "objectDetection";
+  const sample = "object-detection";
   const results = {};
 
   const expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas");

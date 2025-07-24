@@ -6,7 +6,7 @@ const config = require("../../../config.json");
 
 async function facialLandmarkDetectionTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "facialLandmarkDetection";
+  const sample = "facial-landmark-detection";
   const validFaceLandmarkDetectionArray = ["simpleCnn"];
   const expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas");
   const results = {};
