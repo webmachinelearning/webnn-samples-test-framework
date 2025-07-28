@@ -50,6 +50,7 @@ async function facialLandmarkDetectionTest({ backend, dataType, model } = {}) {
         util.throwErrorOnElement(page, pageElement.alertWarning)
       ]);
 
+      const buildTime = await page.$eval(pageElement.buildTime, (el) => el.textContent);
       const computeTime = await page.$eval(pageElement["computeTime"], (el) => el.textContent);
 
       // save canvas image
@@ -77,6 +78,7 @@ async function facialLandmarkDetectionTest({ backend, dataType, model } = {}) {
 
       // set results
       let pageResults = {
+        buildTime: util.formatTimeResult(buildTime),
         inferenceTime: util.formatTimeResult(computeTime),
         error: errorMsg
       };

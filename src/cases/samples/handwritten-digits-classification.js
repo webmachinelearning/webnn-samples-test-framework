@@ -64,6 +64,12 @@ async function handwrittenDigitsClassificationTest({ backend, dataType, model } 
         util.throwErrorOnElement(page, pageElement.alertWarning)
       ]);
 
+      _.set(
+        results,
+        [sample, backend, dataType, model, "buildTime"],
+        await page.$eval(pageElement.handwrittenDigitsBuildTime, (el) => el.textContent)
+      );
+
       // loop test
       for (let i = 0; i < config[source][sample]["rounds"]; i++) {
         // click next button

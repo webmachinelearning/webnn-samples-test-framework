@@ -52,6 +52,7 @@ async function semanticSegmentationTest({ backend, dataType, model } = {}) {
         inferenceTime: util.formatTimeResult(computeTime),
       };
       pageResults = util.replaceEmptyData(pageResults);
+      _.set(results, [sample, backend, dataType, model, "buildTime"], pageResults.buildTime);
       _.set(results, [sample, backend, dataType, model, "inferenceTime"], pageResults.inferenceTime);
 
       console.log("Test Results: ", pageResults);

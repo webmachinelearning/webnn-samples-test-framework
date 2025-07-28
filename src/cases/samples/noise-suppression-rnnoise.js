@@ -92,7 +92,7 @@ async function noiseSuppressionRnNoiseTest({ backend, dataType, model } = {}) {
         pageResults = util.replaceEmptyData(pageResults);
         console.log(`Test results ${example}: `, pageResults);
 
-        const performResultPath = [sample, backend, dataType, model, "processTime"];
+        const performResultPath = [sample, backend, dataType, model, "inferenceTime"];
         initializePath(performResultPath);
         addValueToPath(performResultPath, pageResults.processTime);
       }
@@ -109,6 +109,7 @@ async function noiseSuppressionRnNoiseTest({ backend, dataType, model } = {}) {
       };
       extraResults = util.replaceEmptyData(extraResults);
       console.log("extra results", extraResults);
+      _.set(results, [sample, backend, dataType, model, "buildTime"], extraResults.buildTime);
     } catch (error) {
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);

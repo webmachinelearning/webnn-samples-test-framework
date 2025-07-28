@@ -102,6 +102,7 @@ async function switchSampleTest() {
             pageResults = util.replaceEmptyData(pageResults);
             console.log("Test Results: ", pageResults);
 
+            _.set(results, [_sample, _backend, _dataType, _model, "buildTime"], pageResults.buildTime);
             _.set(results, [_sample, _backend, _dataType, _model, "inferenceTime"], pageResults.inferenceTime);
             await util.saveScreenshot(page, screenshotFilename);
           } catch (error) {

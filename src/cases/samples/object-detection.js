@@ -82,6 +82,7 @@ async function objectDetectionTest({ backend, dataType, model } = {}) {
       pageResults = util.replaceEmptyData(pageResults);
       console.log("Test results: ", pageResults);
 
+      _.set(results, [sample, backend, dataType, model, "buildTime"], pageResults.buildTime);
       _.set(results, [sample, backend, dataType, model, "inferenceTime"], pageResults.inferenceTime);
 
       await util.saveScreenshot(page, screenshotFilename);
