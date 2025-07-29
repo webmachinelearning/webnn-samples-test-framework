@@ -55,8 +55,7 @@ function filterSamplesWithDevices(config, devices) {
 // chrome_canary & cpu, npu, gpu by default
 const ORIGINAL_CONFIG = {
   browser: "chrome_canary",
-  browserArgs: ["--start-maximized"],
-  browserArgsWebnn: ["--enable-features=WebMachineLearningNeuralNetwork,WebNNOnnxRuntime"],
+  browserArgs: ["--start-maximized", "--enable-features=WebMachineLearningNeuralNetwork,WebNNOnnxRuntime"],
   browserUserData: true,
   browserUserDataPath: "",
   browserAppPath: "",
