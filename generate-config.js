@@ -51,10 +51,8 @@ function filterSamplesWithDevices(config, devices) {
   return result;
 }
 
-// chrome_canary & cpu, npu, gpu by default
 const ORIGINAL_CONFIG = {
-  browser: "chrome_canary",
-  browserArgs: ["--start-maximized", "--enable-features=WebMachineLearningNeuralNetwork,WebNNOnnxRuntime"],
+  browserArgs: ["--start-maximized"],
   browserUserData: true,
   browserUserDataPath: "",
   browserAppPath: "",
@@ -270,7 +268,7 @@ const ORIGINAL_CONFIG = {
 };
 
 program
-  .name("generate-config")
+  .name("npm run generate-config --")
   .description("Generate config for webnn sample tests")
   .addOption(
     new Option("-b, --browser <browser>", "The browser to use")
@@ -291,23 +289,30 @@ program
       .choices(["cpu", "gpu", "npu"])
       .default(["cpu", "gpu", "npu"])
   )
-  .action(async ({ devices, browser }) => {
+  .addOption(new Option("-e, --backend <backend>", "The backend to use").choices(["ort", "tflite"]).default("ort"))
+  .action(async ({ devices, browser, backend }) => {
     if (process.platform === "linux" && browser === "edge_canary") {
       console.error("edge_canary is not available on linux.");
       return;
     }
 
     console.log(`browser: ${browser}\ndevices: ${devices}`);
-
     if (devices.includes("npu") && !(await getNPUInfo())) {
       console.warn("NPU is set but not available on this device. Removing npu from devices.");
       devices.splice(devices.indexOf("npu"), 1);
     }
 
-    const filteredConfig = filterSamplesWithDevices(ORIGINAL_CONFIG, devices);
-    filteredConfig.browser = browser;
+    const config = { browser, ...filterSamplesWithDevices(ORIGINAL_CONFIG, devices) };
+    if (backend === "ort") {
+      config.browserArgs.push("--enable-features=WebMachineLearningNeuralNetwork,WebNNOnnxRuntime");
+    } else if (backend === "tflite") {
+      config.browserArgs.push(
+        "--enable-features=WebMachineLearningNeuralNetwork",
+        "--disable-features=WebNNDirectML,WebNNOnnxRuntime"
+      );
+    }
 
-    fs.writeFileSync("./config.json", JSON.stringify(filteredConfig, null, 2));
-    console.log(`./config.json of ${browser} on ${devices.join("-")} has been generated.`);
+    fs.writeFileSync("config.json", JSON.stringify(config, null, 2));
+    console.log(`Generated config.json for ${browser} with ${backend} backend on ${devices.join("-")}`);
   })
   .parse();
