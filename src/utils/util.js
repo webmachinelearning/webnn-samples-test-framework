@@ -12,7 +12,6 @@ const env = require("../../env.json");
 const yargs = require("yargs/yargs");
 const { hideBin } = require("yargs/helpers");
 
-let deviceInfo = {};
 let cliArgs = {};
 let chromePath;
 // test results directory
@@ -67,11 +66,11 @@ function getBrowserPath(browser) {
   if (!browserConf) {
     throw new Error(`Unsupported browser: ${browser}`);
   }
-  const browserName = browserConf[deviceInfo.platform];
+  const browserName = browserConf[process.platform];
   if (!browserName) {
-    throw new Error(`Unsupported browser for platform ${deviceInfo.platform}: ${browser}`);
+    throw new Error(`Unsupported browser for platform ${process.platform}: ${browser}`);
   }
-  if (deviceInfo.platform === "win32") {
+  if (process.platform === "win32") {
     let baseDir;
     if (browser.includes("edge") && !browser.includes("canary")) {
       baseDir = process.env["ProgramFiles(x86)"];
@@ -88,10 +87,10 @@ function getBrowserPath(browser) {
       "Application",
       browserExeName
     );
-  } else if (deviceInfo.platform === "linux") {
+  } else if (process.platform === "linux") {
     browserExeName = browserName;
     browserPath = path.join("/usr/bin", browserExeName);
-  } else if (deviceInfo.platform === "darwin") {
+  } else if (process.platform === "darwin") {
     browserExeName = browserName;
     browserPath = path.join("/Applications", `${browserName}.app`, "Contents", "MacOS", browserName);
   }
@@ -336,7 +335,8 @@ async function getNPUInfo() {
 }
 
 // get device info
-async function getConfig() {
+async function getDeviceInfo() {
+  let deviceInfo = {};
   deviceInfo["hostname"] = config["hostname"] ? config["hostname"] : os.hostname();
   deviceInfo.platform = os.platform();
   deviceInfo["samplesUrl"] = config["samplesBasicUrl"];
@@ -453,6 +453,8 @@ async function getConfig() {
   } catch (error) {
     console.error(`Error occurred while getting NPU info\n. Error Details: ${error}`);
   }
+
+  return deviceInfo;
 }
 
 // click element if it is enabled
@@ -739,7 +741,7 @@ module.exports = {
   throwOnDevelopmentPreviewError,
   throwOnUncaughtException,
   getNPUInfo,
-  getConfig,
+  getDeviceInfo,
   saveCanvasImage,
   compareImages,
   judgeElementClickable,
@@ -747,7 +749,6 @@ module.exports = {
   killBrowserProcess,
   getBrowserProcess,
   chromePath,
-  deviceInfo,
   clickElementIfEnabled,
   generateSupportedSamplesArray,
   calculateAverage,
