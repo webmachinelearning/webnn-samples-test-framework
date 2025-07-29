@@ -1,6 +1,7 @@
 const fs = require("fs");
 const yargs = require("yargs/yargs");
 const { hideBin } = require("yargs/helpers");
+const { getNPUInfo } = require("./src/utils/util");
 
 function filterSamplesWithDevices(config, devices) {
   const result = JSON.parse(JSON.stringify(config));
@@ -296,53 +297,60 @@ const validBrowsers = [
   "edge_stable"
 ];
 
-// edge canary not available on linux
-if (process.platform === "linux") {
-  const index = validBrowsers.indexOf("edge_canary");
-  if (index > -1) {
-    validBrowsers.splice(index, 1);
+(async function () {
+  // edge canary not available on linux
+  if (process.platform === "linux") {
+    const index = validBrowsers.indexOf("edge_canary");
+    if (index > -1) {
+      validBrowsers.splice(index, 1);
+    }
   }
-}
 
-if (process.argv.length === 3 && (process.argv[2] === "--help" || process.argv[2] === "-h")) {
-  console.log(HELP_MESSAGE);
-  process.exit();
-}
+  if (process.argv.length === 3 && (process.argv[2] === "--help" || process.argv[2] === "-h")) {
+    console.error(HELP_MESSAGE);
+    process.exit();
+  }
 
-const args = yargs(hideBin(process.argv))
-  .option("browser", { default: "chrome_canary", type: "string" })
-  .option("devices", { default: "cpu,gpu,npu", type: "string" })
-  .parse();
+  const args = yargs(hideBin(process.argv))
+    .option("browser", { default: "chrome_canary", type: "string" })
+    .option("devices", { default: "cpu,gpu,npu", type: "string" })
+    .parse();
 
-// "_", "$0" are default element after `yargs` parse.
-const validArgs = ["devices", "browser", "_", "$0"];
-const invalidArgs = Object.keys(args).filter((arg) => !validArgs.includes(arg));
+  // "_", "$0" are default element after `yargs` parse.
+  const validArgs = ["devices", "browser", "_", "$0"];
+  const invalidArgs = Object.keys(args).filter((arg) => !validArgs.includes(arg));
 
-if (invalidArgs.length > 0) {
-  console.log(`Invalid arguments: ${invalidArgs.join(", ")}`);
-  process.exit(1);
-}
+  if (invalidArgs.length > 0) {
+    console.error(`Invalid arguments: ${invalidArgs.join(", ")}`);
+    process.exit(1);
+  }
 
-const { devices, browser } = args;
+  const { devices, browser } = args;
 
-// Split devices by comma and validate
-const deviceArray = devices.split(",");
-const invalidDevices = deviceArray.filter((device) => !validDevices.includes(device));
-if (invalidDevices.length > 0) {
-  console.log(`Invalid devices: ${invalidDevices.join(", ")}. Please specify valid devices.`);
-  process.exit(1);
-}
+  // Split devices by comma and validate
+  const deviceArray = devices.split(",");
+  const invalidDevices = deviceArray.filter((device) => !validDevices.includes(device));
+  if (invalidDevices.length > 0) {
+    console.error(`Invalid devices: ${invalidDevices.join(", ")}. Please specify valid devices.`);
+    process.exit(1);
+  }
 
-if (!validBrowsers.includes(browser)) {
-  console.log(`Invalid browser: ${browser}. Please specify a valid browser.`);
-  process.exit(1);
-}
+  if (!validBrowsers.includes(browser)) {
+    console.error(`Invalid browser: ${browser}. Please specify a valid browser.`);
+    process.exit(1);
+  }
 
-console.warn(`browser:${browser}\ndevices:${deviceArray}`);
+  console.log(`browser: ${browser}\ndevices: ${deviceArray}`);
 
-const filteredConfig = filterSamplesWithDevices(ORIGINAL_CONFIG, deviceArray);
-filteredConfig.browser = browser;
+  if (deviceArray.includes("npu") && !(await getNPUInfo())) {
+    console.warn("NPU is set but not available on this device. Removing 'npu' from devices.");
+    deviceArray.splice(deviceArray.indexOf("npu"), 1);
+  }
 
-fs.writeFileSync("./config.json", JSON.stringify(filteredConfig, null, 2));
+  const filteredConfig = filterSamplesWithDevices(ORIGINAL_CONFIG, deviceArray);
+  filteredConfig.browser = browser;
 
-console.log(`./config.json of ${browser} on ${deviceArray.join("-")} has been generated.`);
+  fs.writeFileSync("./config.json", JSON.stringify(filteredConfig, null, 2));
+
+  console.log(`./config.json of ${browser} on ${deviceArray.join("-")} has been generated.`);
+})();

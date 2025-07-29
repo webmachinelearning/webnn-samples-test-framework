@@ -313,6 +313,29 @@ async function waitForElementEnabled(page, pageElement) {
   await page.waitForFunction((selector) => !document.querySelector(selector).hasAttribute("disabled"), {}, pageElement);
 }
 
+async function getNPUInfo() {
+  if (process.platform === "win32") {
+    // Currently supports fetching Intel NPU (AI Boost) device information on Windows platforms,
+    // other NPU manufacturers support will be added in the future.
+    const command = `
+        Get-WmiObject Win32_PnPSignedDriver | 
+        Where-Object { $_.DeviceName -match 'Intel\\(R\\) AI Boost' } | 
+        Select-Object DeviceName, DriverVersion, Manufacturer | 
+        ConvertTo-Json -Depth 3`;
+    const info = execSync(`powershell -Command "${command.replace(/\n+/g, " ")}"`)
+      .toString()
+      .trim();
+    if (info) {
+      const npuInfo = JSON.parse(info);
+      return {
+        npuName: npuInfo["DeviceName"],
+        npuManufacturer: npuInfo["Manufacturer"],
+        npuDriverVersion: npuInfo["DriverVersion"]
+      };
+    }
+  }
+}
+
 // get device info
 async function getConfig() {
   deviceInfo["hostname"] = config["hostname"] ? config["hostname"] : os.hostname();
@@ -428,24 +451,7 @@ async function getConfig() {
 
   // NPU
   try {
-    if (deviceInfo.platform === "win32") {
-      // Currently supports fetching Intel NPU (AI Boost) device information on Windows platforms,
-      // other NPU manufacturers support will be added in the future.
-      const command = `
-        Get-WmiObject Win32_PnPSignedDriver | 
-        Where-Object { $_.DeviceName -match 'Intel\\(R\\) AI Boost' } | 
-        Select-Object DeviceName, DriverVersion, Manufacturer | 
-        ConvertTo-Json -Depth 3`;
-      const info = execSync(`powershell -Command "${command.replace(/\n+/g, " ")}"`)
-        .toString()
-        .trim();
-      if (info) {
-        const npuInfo = JSON.parse(info);
-        deviceInfo["npuName"] = npuInfo["DeviceName"];
-        deviceInfo["npuManufacturer"] = npuInfo["Manufacturer"];
-        deviceInfo["npuDriverVersion"] = npuInfo["DriverVersion"];
-      }
-    }
+    deviceInfo = { ...deviceInfo, ...(await getNPUInfo()) };
   } catch (error) {
     console.error(`Error occurred while getting NPU info\n. Error Details: ${error}`);
   }
@@ -734,6 +740,7 @@ module.exports = {
   throwErrorOnElement,
   throwOnDevelopmentPreviewError,
   throwOnUncaughtException,
+  getNPUInfo,
   getConfig,
   saveCanvasImage,
   compareImages,
