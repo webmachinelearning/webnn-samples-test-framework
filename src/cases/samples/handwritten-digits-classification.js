@@ -1,9 +1,8 @@
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 
-async function handwrittenDigitsClassificationTest({ backend, dataType, model } = {}) {
+async function handwrittenDigitsClassificationTest({ config, backend, dataType, model } = {}) {
   const source = "samples";
   const sample = "handwritten-digits-classification";
   const results = {};
@@ -39,7 +38,7 @@ async function handwrittenDigitsClassificationTest({ backend, dataType, model } 
     const screenshotFilename = `${source}_${sample}_${backend}_${dataType}_${model}`;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       // open a new page
       page = await browser.newPage();
       // set the default timeout time for the page

@@ -1,17 +1,16 @@
 const util = require("../../utils/util.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 const processInfo = require("../../utils/process.js");
 
-async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
+async function stableDiffusionTurboTest({ config, backend, dataType, model } = {}) {
   let source = "developer-preview";
   let sample = "stable-diffusion-turbo";
   let results = {};
   const threshold = 75;
 
   const pageElement = pageElementTotal[sample];
-  const browserProcess = util.getBrowserProcess();
+  const browserProcess = util.getBrowserProcess(config);
   const modelNameArray = ["textEncoder", "unet", "vaeDecoder", "safetyChecker"];
 
   const testExecution = async (backend, dataType, model = "") => {
@@ -26,7 +25,7 @@ async function stableDiffusionTurboTest({ backend, dataType, model } = {}) {
     let browser;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       page = await browser.newPage();
       page.setDefaultTimeout(config["timeout"]);
 

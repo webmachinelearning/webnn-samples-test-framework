@@ -21,8 +21,7 @@
     "prettier": "^3.2.5",
     "puppeteer": "^23.0.2",
     "qs": "^6.14.0",
-    "systeminformation": "^5.22.7",
-    "yargs": "^17.7.2"
+    "systeminformation": "^5.22.7"
   },
   "type": "commonjs"
 }

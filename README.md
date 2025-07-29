@@ -2,28 +2,44 @@
 
 An automation test framework for testing [W3C WebNN Samples](https://github.com/webmachinelearning/webnn-samples) and [Microsoft WebNN Demos](https://microsoft.github.io/webnn-developer-preview/).
 
-## Set env.json
+## Install
+
+```sh
+$ npm install
+$ cp env.example.json env.json
+```
+
+### Set env.json
 
 - `env`: `'debug'` for local development. `'production'` for production model and the test result will be sent via email.
 - `hostname`: Identify yourself.
 - `proxy`: Set the proxy server, which is usually needed.
 - `emailService`: Edit the email config according to your server.
 
-## Set config.json
-### Generate config
-The config.json file can be dynamically generated using the command:
+### Set config.json
+#### Generate config
+The config.json file can be automatically generated using the command:
 
 ```shell
 npm run generate-config
 ```
 
-Run
+Run with `-h` to see the help message.
 ```shell
 $ npm run generate-config -- -h
-```
-to see the help message.
+Usage: npm run generate-config -- [options]
 
-### Change config
+Generate config for webnn sample tests
+
+Options:
+  -b, --browser <browser>     The browser to use (choices: "chrome_canary", "chrome_dev", "chrome_beta", "chrome_stable", "edge_canary", "edge_dev", "edge_beta", "edge_stable", default: "chrome_canary")
+  -d, --devices <devices...>  The devices to use (choices: "cpu", "gpu", "npu", default: ["cpu","gpu","npu"])
+  -e, --backend <backend>     The backend to use (choices: "ort", "tflite", default: "ort")
+  -o, --output <path>         The output config file path (default: "config.json")
+  -h, --help                  display help for command
+```
+
+#### Change config
 You can also manually adjust the parameters in config.json to fit your specific needs.
 
 - `browser`: Choose the browser to run the test. Options include `chrome_canary`, `chrome_dev`, `chrome_beta`, `chrome_stable`, `edge_canary` (except on Linux), `edge_dev`, `edge_beta`, `edge_stable`.
@@ -37,6 +53,36 @@ You can also manually adjust the parameters in config.json to fit your specific 
 - `samplesUrl`: Each sample URL: `samplesBasicUrl + samplesUrl`.
 - `samples`: WebNN samples config.
 - `developerPreview`: WebNN developer preview demo config.
+
+## Start
+
+### Test all samples
+
+```sh
+$ npm test
+```
+
+### Test a specific single sample
+
+Get all supported samples from help message
+
+```shell
+$ npm test -- -f
+Using config file: config.json
+Available filters:
+┌─────────┬──────────────────────────────────────────────────────────────────────────┐
+│ (index) │ Values                                                                   │
+├─────────┼──────────────────────────────────────────────────────────────────────────┤
+│ 0       │ 'samples-image-classification-cpu-fp32-mobileNetV2'            │
+| ...     | ...                                                                      │
+└─────────┴──────────────────────────────────────────────────────────────────────────┘
+```
+
+Specify the sample with `-f` or `--filter` option. Multiple samples can be specified by separating them with spaces.
+
+```shell
+$ npm test -- -f samples-image-classification-cpu-fp32-mobileNetV2
+```
 
 ## Support
 
@@ -54,58 +100,4 @@ Windows / Linux / MacOS
 
 chrome_canary / chrome_dev / chrome_beta / chrome_stable / edge_canary / edge_dev / edge_beta / edge_stable
 
-edge_canary is not available on Linux.
-
-## Install
-
-```sh
-$ npm install
-$ cp env.example.json env.json
-```
-
-## Start
-
-### Test all samples
-
-```sh
-$ npm test
-```
-
-### Test a specific single sample
-
-Get all supported samples from help message
-
-```shell
-
-$ npm test -- -h
-
-  ##### WebNN Samples Test #####
-
-  Usage:
-    npm test -- [options]
-
-  Options:
-    -h, --help                    Print this message
-    -f=, --filter=                Specify the specific single sample test
-    --browserAppPath=             Specify browser 'Application' folder path (relative | absolute)
-                                  Relative path should be based on sample test root
-    --browserUserDataPath=        Specify browser 'User Data' folder path (relative | absolute)
-                                  Relative path should be based on sample test root
-
->>> All supported samples are as followings, select one from them.
-
-┌───────┬──────────────────────────────────────────────────────────────┐
-│ index | Values                                                       |
-├───────┼──────────────────────────────────────────────────────────────┤
-| 0     | samples-imageClassification-cpu-fp32-mobileNetV2             |
-├───────┼──────────────────────────────────────────────────────────────┤
-| 1     | developerPreview-imageClassification-gpu-fp16-mobileNetV2    |
-└───────┴──────────────────────────────────────────────────────────────┘
-
-```
-
-Specify the sample with `-f,--filter` option
-
-```shell
-$ npm test -- -f=samples-imageClassification-cpu-fp32-mobileNetV2
-```
+- edge_canary is not available on Linux.

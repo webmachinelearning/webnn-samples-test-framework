@@ -2,16 +2,15 @@ const util = require("../../utils/util.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 const _ = require("lodash");
 const path = require("path");
-const config = require("../../../config.json");
 const processInfo = require("../../utils/process.js");
 
-async function whisperBaseTest({ backend, dataType, model } = {}) {
+async function whisperBaseTest({ config, backend, dataType, model } = {}) {
   let source = "developer-preview";
   let sample = "whisper-base";
   let results = {};
 
   const pageElement = pageElementTotal[sample];
-  const browserProcess = util.getBrowserProcess();
+  const browserProcess = util.getBrowserProcess(config);
   const modelNameArray = ["encoder", "decoder", "decoderKvCache"];
 
   const testExecution = async (backend, dataType, model = "") => {
@@ -24,7 +23,7 @@ async function whisperBaseTest({ backend, dataType, model } = {}) {
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       // open a new page
       page = await browser.newPage();
       // set the default timeout time for the page

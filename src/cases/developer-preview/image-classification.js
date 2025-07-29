@@ -9,9 +9,8 @@ const qs = require("qs");
 const util = require("../../utils/util.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 
-async function imageClassificationPreviewTest({ backend, dataType, model } = {}) {
+async function imageClassificationPreviewTest({ config, backend, dataType, model } = {}) {
   const source = "developer-preview";
   const sample = "image-classification";
   let results = {};
@@ -43,7 +42,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
 
@@ -88,7 +87,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
 
@@ -140,7 +139,7 @@ async function imageClassificationPreviewTest({ backend, dataType, model } = {})
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       page = await browser.newPage();
       page.setDefaultTimeout(config.timeout);
       await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}`, {

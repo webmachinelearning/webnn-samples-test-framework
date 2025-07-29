@@ -1,16 +1,15 @@
 const util = require("../../utils/util.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 const processInfo = require("../../utils/process.js");
 
-async function stableDiffusion15Test({ backend, dataType, model } = {}) {
+async function stableDiffusion15Test({ config, backend, dataType, model } = {}) {
   let source = "developer-preview";
   let sample = "stable-diffusion-1-5";
   let results = {};
 
   const pageElement = pageElementTotal[sample];
-  const browserProcess = util.getBrowserProcess();
+  const browserProcess = util.getBrowserProcess(config);
 
   const modelNameArray = ["textEncoder", "unet", "vaeDecoder", "safetyChecker"];
 
@@ -25,7 +24,7 @@ async function stableDiffusion15Test({ backend, dataType, model } = {}) {
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       page = await browser.newPage();
       page.setDefaultTimeout(config["timeout"]);
 

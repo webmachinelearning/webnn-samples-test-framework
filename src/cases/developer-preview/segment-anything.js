@@ -1,9 +1,8 @@
 const util = require("../../utils/util.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 
-async function segmentAnythingTest({ backend, dataType, model } = {}) {
+async function segmentAnythingTest({ config, backend, dataType, model } = {}) {
   const source = "developer-preview";
   const sample = "segment-anything";
   let results = {};
@@ -22,7 +21,7 @@ async function segmentAnythingTest({ backend, dataType, model } = {}) {
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       page = await browser.newPage();
       page.setDefaultTimeout(config["timeout"]);
 

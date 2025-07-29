@@ -2,9 +2,8 @@ const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
 const path = require("path");
-const config = require("../../../config.json");
 
-async function faceRecognitionTest({ backend, dataType, model } = {}) {
+async function faceRecognitionTest({ config, backend, dataType, model } = {}) {
   const source = "samples";
   const sample = "face-recognition";
   const validFaceRecognitionArray = ["faceNet"];
@@ -27,7 +26,7 @@ async function faceRecognitionTest({ backend, dataType, model } = {}) {
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       // open a new page
       page = await browser.newPage();
       // set the default timeout time for the page
