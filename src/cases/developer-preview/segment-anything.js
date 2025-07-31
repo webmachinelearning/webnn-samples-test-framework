@@ -5,18 +5,15 @@ const _ = require("lodash");
 async function segmentAnythingTest({ config, backend, dataType, model } = {}) {
   const source = "developer-preview";
   const sample = "segment-anything";
-  let results = {};
-
   const pageElement = pageElementTotal[sample];
-  const modelArray = ["encoder", "decoder"];
 
   const testExecution = async (backend, dataType, model = "") => {
+    let result = {};
     console.log(`${source} ${sample} ${backend} ${dataType} ${model} testing...`);
 
     const screenshotFilename = model
       ? `${source}_${sample}_${backend}_${dataType}_${model}`
       : `${source}_${sample}_${backend}_${dataType}`;
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -31,9 +28,11 @@ async function segmentAnythingTest({ config, backend, dataType, model } = {}) {
       });
 
       // wait model load complete
-      await page.waitForSelector(pageElement["imgCanvas"], {
-        visible: true
-      });
+      await Promise.race([
+        page.waitForSelector(pageElement["imgCanvas"], { visible: true }),
+        util.throwOnUncaughtException(page)
+      ]);
+
       // get canvas image location
       const imageRect = await page.evaluate((pageElement) => {
         const imageElement = document.querySelector(pageElement["imgCanvas"]);
@@ -49,73 +48,48 @@ async function segmentAnythingTest({ config, backend, dataType, model } = {}) {
       // click the spot of canvas image
       await page.mouse.click(x, y);
       // wait results appear
-      await page.waitForSelector(pageElement["decoderLatency"], {
-        visible: true
-      });
-
-      let samDecoderTime = "";
-      let checkCount = 60;
-
-      for (let i = 0; i < checkCount; i++) {
-        samDecoderTime = await page.$eval(pageElement["decoderLatency"], (el) => el.textContent);
-        if (samDecoderTime) break;
-        await util.delay(1000);
-      }
-
-      if (!samDecoderTime) {
-        throw new Error("[PageTimeout]");
-      }
-
-      const encoderTime = await page.$eval(pageElement["logPanel"], (el) => {
-        const matches = el.textContent.match(/Encoder execution time: (\d+\.?\d*)ms/g);
-        if (matches && matches.length > 0) {
-          const lastMatch = matches[matches.length - 1];
-          const timeMatch = lastMatch.match(/(\d+\.?\d*)ms/);
-          return timeMatch ? timeMatch[1].toString() : "";
+      await page.waitForSelector(pageElement.decoderLatency, { visible: true });
+      await page.waitForFunction(
+        async (pageElement) => document.querySelector(pageElement.decoderLatency)?.textContent,
+        {},
+        pageElement
+      );
+      const log = await page.$eval(pageElement.logPanel, (el) => el.textContent);
+      result = {
+        encoder: {
+          buildTime: log.match(/SAM ViT-B Encoder \(FP(?:16|32)\) create time: (\d+\.?\d*)ms/)[1],
+          inferenceTime: log.match(/Encoder execution time: (\d+\.?\d*)ms/)[1]
+        },
+        decoder: {
+          buildTime: log.match(/SAM ViT-B Decoder \(FP(?:16|32)\) create time: (\d+\.?\d*)ms/)[1],
+          inferenceTime: await page.$eval(pageElement.decoderLatency, (el) => el.textContent)
         }
-        return "";
-      });
-
-      if (model) {
-        _.set(
-          results,
-          [sample, backend, dataType, model, "inferenceTime"],
-          model === "encoder" ? encoderTime : samDecoderTime
-        );
-      } else {
-        _.set(results, [sample, backend, dataType, "encoder", "inferenceTime"], encoderTime);
-        _.set(results, [sample, backend, dataType, "decoder", "inferenceTime"], samDecoderTime);
-      }
-
-      console.log("Test Results: ", samDecoderTime);
+      };
+      console.log("Test Results: ", result);
     } catch (error) {
-      errorMsg += error.message;
-      if (page) {
-        await util.saveScreenshot(page, screenshotFilename);
-      }
+      result = { encoder: { error: error.message }, decoder: { error: error.message } };
       console.warn(error);
     } finally {
-      // currently save the same error content for each model
-      if (model) {
-        _.set(results, [sample, backend, dataType, model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
-      } else {
-        for (let _model of modelArray) {
-          _.set(results, [sample, backend, dataType, _model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
-        }
-      }
+      if (page) await util.saveScreenshot(page, screenshotFilename);
       if (browser) await browser.close();
+    }
+    if (model) {
+      return { [model]: result[model] };
+    } else {
+      return result;
     }
   };
 
-  if ((backend, dataType, model)) {
-    await testExecution(backend, dataType, model);
+  let results = {};
+  if (backend && dataType && model) {
+    _.set(results, [sample, backend, dataType], await testExecution(backend, dataType, model));
   } else {
     for (let _backend in config[source][sample]) {
       if (!["cpu", "gpu", "npu"].includes(_backend)) {
         continue;
       }
       for (let _dataType in config[source][sample][_backend]) {
-        await testExecution(_backend, _dataType);
+        _.set(results, [sample, _backend, _dataType], await testExecution(_backend, _dataType));
       }
     }
   }
