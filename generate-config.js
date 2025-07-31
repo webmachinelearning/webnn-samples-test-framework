@@ -240,9 +240,11 @@ const ORIGINAL_CONFIG = {
       }
     },
     "whisper-base": {
+      cpu: { fp16: ["encoder", "decoder", "decoderKvCache"] },
       gpu: { fp16: ["encoder", "decoder", "decoderKvCache"] },
       npu: { fp16: ["encoder", "decoder", "decoderKvCache"] },
       urlArgs: {
+        cpu: "?devicetype=cpu",
         gpu: "?devicetype=gpu",
         npu: "?devicetype=npu"
       },
