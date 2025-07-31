@@ -39,8 +39,7 @@ async function handwrittenDigitsClassificationTest({ config, backend, dataType, 
 
     try {
       browser = await util.launchBrowser(config);
-      // open a new page
-      page = await browser.newPage();
+      page = (await browser.pages())[0];
       // set the default timeout time for the page
       page.setDefaultTimeout(config["timeout"]);
 

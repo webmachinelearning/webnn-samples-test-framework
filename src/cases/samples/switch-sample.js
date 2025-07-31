@@ -18,7 +18,7 @@ async function switchSampleTest({ config }) {
   console.log(`${source} ${sampleTest} testing...`);
   let browser = await util.launchBrowser(config);
 
-  const page = await browser.newPage();
+  const page = (await browser.pages())[0];
   page.setDefaultTimeout(config["timeout"]);
 
   // navigate the page to sample
