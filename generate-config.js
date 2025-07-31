@@ -68,6 +68,7 @@ const ORIGINAL_CONFIG = {
     "handwritten-digits-classification": "/lenet/",
     "image-classification": "/image_classification/?numRuns=50",
     "object-detection": "/object_detection/",
+    "selfie-segmentation": "/selfie_segmentation/",
     "semantic-segmentation": "/semantic_segmentation/",
     "noise-suppression-nsnet2": "/nsnet2/",
     "noise-suppression-rnnoise": "/rnnoise/",
@@ -136,6 +137,11 @@ const ORIGINAL_CONFIG = {
       npu: {
         fp16: ["ssdMobileNetV1"]
       }
+    },
+    "selfie-segmentation": {
+      cpu: { fp16: ["general"], fp32: ["general"] },
+      gpu: { fp16: ["general"], fp32: ["general"] },
+      npu: { fp16: ["general"], fp32: ["general"] }
     },
     "semantic-segmentation": {
       cpu: { fp32: ["deepLabV3MobileNetV2"] },
