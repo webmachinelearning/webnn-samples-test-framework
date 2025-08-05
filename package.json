@@ -12,6 +12,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "canvas": "^3.0.1",
+    "commander": "^14.0.0",
     "dayjs": "^1.11.10",
     "juice": "^11.0.1",
     "liquidjs": "^10.21.1",

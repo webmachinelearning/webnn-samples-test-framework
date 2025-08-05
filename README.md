@@ -10,28 +10,20 @@ An automation test framework for testing [W3C WebNN Samples](https://github.com/
 - `emailService`: Edit the email config according to your server.
 
 ## Set config.json
-
+### Generate config
 The config.json file can be dynamically generated using the command:
 
 ```shell
 npm run generate-config
 ```
 
-This command accepts two arguments: `--browser` and `--devices`. These arguments allow you to specify the browser and devices for which you want to generate the configuration file.
-
-For example:
-
+Run
 ```shell
-$ npm run generate-config -- --browser=chrome_canary --devices=gpu npu
-
-> sample-test@1.0.0 generate-config
-> node generate-config.js --browser=chrome_canary --devices=gpu npu
-
-./config.json of chrome_canary on gpu-npu has been generated.
+$ npm run generate-config -- -h
 ```
+to see the help message.
 
-If you run `npm run generate-config` without passing arguments, the default configuration will be generated for `chrome_canary` and all devices(`cpu,gpu,npu`).
-
+### Change config
 You can also manually adjust the parameters in config.json to fit your specific needs.
 
 - `browser`: Choose the browser to run the test. Options include `chrome_canary`, `chrome_dev`, `chrome_beta`, `chrome_stable`, `edge_canary` (except on Linux), `edge_dev`, `edge_beta`, `edge_stable`.

@@ -1,6 +1,5 @@
 const fs = require("fs");
-const yargs = require("yargs/yargs");
-const { hideBin } = require("yargs/helpers");
+const { program, Option } = require("commander");
 const { getNPUInfo } = require("./src/utils/util");
 
 function filterSamplesWithDevices(config, devices) {
@@ -270,86 +269,45 @@ const ORIGINAL_CONFIG = {
   }
 };
 
-const HELP_MESSAGE = `
-##### Generate config for sample tests #####
-
-Usage:
-  node generate-config.js [options]
-OR
-  npm run generate-config -- [options]
-
-Options:
-      --browser                              [string] [default: "chrome_canary"]
-      --devices                           [array] [default: ["cpu","gpu","npu"]]
-  -h, --help     Show help                                             [boolean]
-`;
-
-const validDevices = ["cpu", "npu", "gpu"];
-const validBrowsers = [
-  "chrome_canary",
-  "chrome_dev",
-  "chrome_beta",
-  "chrome_stable",
-  "edge_canary",
-  "edge_dev",
-  "edge_beta",
-  "edge_stable"
-];
-
-(async function () {
-  // edge canary not available on linux
-  if (process.platform === "linux") {
-    const index = validBrowsers.indexOf("edge_canary");
-    if (index > -1) {
-      validBrowsers.splice(index, 1);
+program
+  .name("generate-config")
+  .description("Generate config for webnn sample tests")
+  .addOption(
+    new Option("-b, --browser <browser>", "The browser to use")
+      .choices([
+        "chrome_canary",
+        "chrome_dev",
+        "chrome_beta",
+        "chrome_stable",
+        "edge_canary",
+        "edge_dev",
+        "edge_beta",
+        "edge_stable"
+      ])
+      .default("chrome_canary")
+  )
+  .addOption(
+    new Option("-d, --devices <devices...>", "The devices to use")
+      .choices(["cpu", "gpu", "npu"])
+      .default(["cpu", "gpu", "npu"])
+  )
+  .action(async ({ devices, browser }) => {
+    if (process.platform === "linux" && browser === "edge_canary") {
+      console.error("edge_canary is not available on linux.");
+      return;
     }
-  }
 
-  if (process.argv.length === 3 && (process.argv[2] === "--help" || process.argv[2] === "-h")) {
-    console.error(HELP_MESSAGE);
-    process.exit();
-  }
+    console.log(`browser: ${browser}\ndevices: ${devices}`);
 
-  const args = yargs(hideBin(process.argv))
-    .option("browser", { default: "chrome_canary", type: "string" })
-    .option("devices", { default: "cpu,gpu,npu", type: "string" })
-    .parse();
+    if (devices.includes("npu") && !(await getNPUInfo())) {
+      console.warn("NPU is set but not available on this device. Removing npu from devices.");
+      devices.splice(devices.indexOf("npu"), 1);
+    }
 
-  // "_", "$0" are default element after `yargs` parse.
-  const validArgs = ["devices", "browser", "_", "$0"];
-  const invalidArgs = Object.keys(args).filter((arg) => !validArgs.includes(arg));
+    const filteredConfig = filterSamplesWithDevices(ORIGINAL_CONFIG, devices);
+    filteredConfig.browser = browser;
 
-  if (invalidArgs.length > 0) {
-    console.error(`Invalid arguments: ${invalidArgs.join(", ")}`);
-    process.exit(1);
-  }
-
-  const { devices, browser } = args;
-
-  // Split devices by comma and validate
-  const deviceArray = devices.split(",");
-  const invalidDevices = deviceArray.filter((device) => !validDevices.includes(device));
-  if (invalidDevices.length > 0) {
-    console.error(`Invalid devices: ${invalidDevices.join(", ")}. Please specify valid devices.`);
-    process.exit(1);
-  }
-
-  if (!validBrowsers.includes(browser)) {
-    console.error(`Invalid browser: ${browser}. Please specify a valid browser.`);
-    process.exit(1);
-  }
-
-  console.log(`browser: ${browser}\ndevices: ${deviceArray}`);
-
-  if (deviceArray.includes("npu") && !(await getNPUInfo())) {
-    console.warn("NPU is set but not available on this device. Removing 'npu' from devices.");
-    deviceArray.splice(deviceArray.indexOf("npu"), 1);
-  }
-
-  const filteredConfig = filterSamplesWithDevices(ORIGINAL_CONFIG, deviceArray);
-  filteredConfig.browser = browser;
-
-  fs.writeFileSync("./config.json", JSON.stringify(filteredConfig, null, 2));
-
-  console.log(`./config.json of ${browser} on ${deviceArray.join("-")} has been generated.`);
-})();
+    fs.writeFileSync("./config.json", JSON.stringify(filteredConfig, null, 2));
+    console.log(`./config.json of ${browser} on ${devices.join("-")} has been generated.`);
+  })
+  .parse();
