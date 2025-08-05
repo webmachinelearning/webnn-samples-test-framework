@@ -31,10 +31,9 @@ function replacePathString(str) {
   return str.replace(/\\/g, "/");
 }
 
-function getBrowserArgs(backend = "") {
+function getBrowserArgs() {
+  // puppeteer will manipulate the args, so we create a copy
   const browserArgs = [...config["browserArgs"]];
-  // push webnn arguments by default
-  browserArgs.push(...config["browserArgsWebnn"]);
   if (env.proxy.host) {
     browserArgs.push(`--proxy-server=${env.proxy.host}:${env.proxy.port}`);
   }
@@ -344,7 +343,6 @@ async function getConfig() {
   deviceInfo["developerPreviewUrl"] = config["developerPreviewBasicUrl"];
   deviceInfo["browser"] = config["browser"];
   deviceInfo["browserArgs"] = config["browserArgs"];
-  deviceInfo["browserArgsWebnn"] = config["browserArgsWebnn"];
   const { browserPath, userDataDir } = getBrowserPath(config["browser"]);
   deviceInfo["browserPath"] = browserPath;
 
