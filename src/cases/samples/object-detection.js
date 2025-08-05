@@ -6,7 +6,7 @@ const config = require("../../../config.json");
 
 async function objectDetectionTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "objectDetection";
+  const sample = "object-detection";
   const results = {};
 
   const expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas");
@@ -82,6 +82,7 @@ async function objectDetectionTest({ backend, dataType, model } = {}) {
       pageResults = util.replaceEmptyData(pageResults);
       console.log("Test results: ", pageResults);
 
+      _.set(results, [sample, backend, dataType, model, "buildTime"], pageResults.buildTime);
       _.set(results, [sample, backend, dataType, model, "inferenceTime"], pageResults.inferenceTime);
 
       await util.saveScreenshot(page, screenshotFilename);

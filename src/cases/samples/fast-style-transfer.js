@@ -6,7 +6,7 @@ const config = require("../../../config.json");
 
 async function fastStyleTransferTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "fastStyleTransfer";
+  const sample = "fast-style-transfer";
   const results = {};
   const expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas/fast-style-transfer");
 
@@ -42,6 +42,7 @@ async function fastStyleTransferTest({ backend, dataType, model } = {}) {
           util.throwErrorOnElement(page, pageElement.alertWarning)
         ]);
 
+        const buildTime = await page.$eval(pageElement.buildTime, (el) => el.textContent);
         const computeTime = await page.$eval(pageElement["computeTime"], (el) => el.textContent);
 
         let compareImageInputResults = 0;
@@ -52,13 +53,13 @@ async function fastStyleTransferTest({ backend, dataType, model } = {}) {
           const saveCanvasImageInputResult = await util.saveCanvasImage(
             page,
             pageElement.fastStyleTransferInputCanvas,
-            `${sample}_${example}_input`
+            `${sample}/${example}_input`
           );
 
           // compare canvas to expected input canvas
           compareImageInputResults = util.compareImages(
             saveCanvasImageInputResult.canvasPath,
-            `${expectedCanvas}/${sample}_${example}_input.png`
+            `${expectedCanvas}/${example}_input.png`
           );
 
           if (compareImageInputResults < 95) {
@@ -67,7 +68,7 @@ async function fastStyleTransferTest({ backend, dataType, model } = {}) {
             );
           }
 
-          const canvasImageName = `${sample}_${example}_output`;
+          const canvasImageName = `${sample}/${example}_output`;
           const saveCanvasResult = await util.saveCanvasImage(
             page,
             pageElement.fastStyleTransferOutputCanvas,
@@ -75,7 +76,7 @@ async function fastStyleTransferTest({ backend, dataType, model } = {}) {
           );
 
           // compare canvas to expected canvas
-          const expectedCanvasPath = `${expectedCanvas}/${sample}_${example}_output.png`;
+          const expectedCanvasPath = `${expectedCanvas}/${example}_output.png`;
           compareImagesOutputResults = util.compareImages(saveCanvasResult.canvasPath, expectedCanvasPath);
         } catch (error) {
           console.log(error);
@@ -87,6 +88,7 @@ async function fastStyleTransferTest({ backend, dataType, model } = {}) {
         }
 
         let pageResults = {
+          buildTime: util.formatTimeResult(buildTime),
           inferenceTime: util.formatTimeResult(computeTime)
         };
         console.log("Test Results: ", pageResults);

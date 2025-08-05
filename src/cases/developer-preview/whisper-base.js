@@ -6,8 +6,8 @@ const config = require("../../../config.json");
 const processInfo = require("../../utils/process.js");
 
 async function whisperBaseTest({ backend, dataType, model } = {}) {
-  let source = "developerPreview";
-  let sample = "whisperBase";
+  let source = "developer-preview";
+  let sample = "whisper-base";
   let results = {};
 
   const pageElement = pageElementTotal[sample];

@@ -5,7 +5,7 @@ const config = require("../../../config.json");
 
 async function semanticSegmentationTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "semanticSegmentation";
+  const sample = "semantic-segmentation";
   let results = {};
 
   const testExecution = async (backend, dataType, model) => {
@@ -52,6 +52,7 @@ async function semanticSegmentationTest({ backend, dataType, model } = {}) {
         inferenceTime: util.formatTimeResult(computeTime),
       };
       pageResults = util.replaceEmptyData(pageResults);
+      _.set(results, [sample, backend, dataType, model, "buildTime"], pageResults.buildTime);
       _.set(results, [sample, backend, dataType, model, "inferenceTime"], pageResults.inferenceTime);
 
       console.log("Test Results: ", pageResults);

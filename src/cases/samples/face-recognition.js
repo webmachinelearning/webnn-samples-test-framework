@@ -6,7 +6,7 @@ const config = require("../../../config.json");
 
 async function faceRecognitionTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "faceRecognition";
+  const sample = "face-recognition";
   const validFaceRecognitionArray = ["faceNet"];
   const results = {};
 
@@ -54,6 +54,7 @@ async function faceRecognitionTest({ backend, dataType, model } = {}) {
       ]);
 
       // get results
+      const buildTime = await page.$eval(pageElement.buildTime, (el) => el.textContent);
       const computeTime = await page.$eval(pageElement["computeTime"], (el) => el.textContent);
 
       // save canvas image
@@ -98,6 +99,7 @@ async function faceRecognitionTest({ backend, dataType, model } = {}) {
 
       // set results
       let pageResults = {
+        buildTime: util.formatTimeResult(buildTime),
         inferenceTime: util.formatTimeResult(computeTime),
         error: errorMsg
       };

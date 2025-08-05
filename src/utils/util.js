@@ -209,12 +209,11 @@ async function saveCanvasImage(page, canvas_element, filename) {
 
     // save image
     const timestamp = getTimestamp();
-    const canvasDir = `${outDir}/${timestamp}/canvas_image`;
-    ensureDir(canvasDir);
-    fs.writeFileSync(`${canvasDir}/${filename}.png`, buffer);
+    const canvasPath = `${outDir}/${timestamp}/canvas_image/${filename}.png`;
+    ensureDir(path.dirname(canvasPath));
+    fs.writeFileSync(canvasPath, buffer);
 
-    // console.log("canvas image has been saved in " + canvasDir);
-    return { canvasPath: `${canvasDir}/${filename}.png` };
+    return { canvasPath };
   } catch (error) {
     console.log("canvas image save fail", error);
   }
@@ -511,8 +510,6 @@ function getBrowserProcess() {
 
 function generateSupportedSamplesArray() {
   const allSupportedSamples = [];
-  const samples = config.samples;
-  const developerPreview = config.developerPreview;
 
   function parseJSON(obj, currentPath, result = []) {
     for (const key in obj) {
@@ -534,8 +531,8 @@ function generateSupportedSamplesArray() {
     return result;
   }
 
-  allSupportedSamples.push(...parseJSON(samples, ["samples"]));
-  allSupportedSamples.push(...parseJSON(developerPreview, ["developerPreview"]));
+  allSupportedSamples.push(...parseJSON(config.samples, ["samples"]));
+  allSupportedSamples.push(...parseJSON(config["developer-preview"], ["developer-preview"]));
   return allSupportedSamples;
 }
 

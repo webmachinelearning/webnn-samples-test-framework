@@ -64,6 +64,7 @@ async function switchBackendTest() {
         };
 
         pageResults = util.replaceEmptyData(pageResults);
+        _.set(subSampleResults, [subSample, backend, dataType, model, "buildTime"], pageResults.buildTime);
         _.set(subSampleResults, [subSample, backend, dataType, model, "inferenceTime"], pageResults.inferenceTime);
       }
     } catch (error) {

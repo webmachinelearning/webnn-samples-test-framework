@@ -5,7 +5,7 @@ const config = require("../../../config.json");
 
 async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "noiseSuppressionNsNet2";
+  const sample = "noise-suppression-nsnet2";
   const results = {};
 
   // Function to initialize the structure if it doesn't exist
@@ -94,7 +94,7 @@ async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
         pageResults = util.replaceEmptyData(pageResults);
         console.log(`Test results ${example}: `, pageResults);
 
-        const performResultPath = [sample, backend, dataType, model, "processTime"];
+        const performResultPath = [sample, backend, dataType, model, "inferenceTime"];
         initializePath(performResultPath);
         addValueToPath(performResultPath, pageResults.processTime);
       }
@@ -113,6 +113,7 @@ async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
       };
       extraResults = util.replaceEmptyData(extraResults);
       console.log("Extra results", extraResults);
+      _.set(results, [sample, backend, dataType, model, "buildTime"], extraResults.buildTime);
     } catch (error) {
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);

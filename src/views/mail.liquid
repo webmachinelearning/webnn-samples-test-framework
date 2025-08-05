@@ -38,8 +38,12 @@
         <tbody>
         {% for case in failedCases %}
             <tr>
-                <td>{{ case.variable }}</td>
-                <td>{{ case.models | join: ", " }}</td>
+                {% if case.models.length == 1 %}
+                    <td colspan="2">{{ case.variable }}-{{ case.models | join: ", " }}</td>
+                {% else %}
+                    <td>{{ case.variable }}</td>
+                    <td>{{ case.models | join: ", " }}</td>
+                {% endif %}
                 <td>{{ case.error }}</td>
             </tr>
         {% endfor %}
@@ -76,6 +80,7 @@
             <thead>
             <tr>
                 <th>Demo</th>
+                <th>Build<br>Time (ms)</th>
                 <th>Inference<br>Time (ms)</th>
             </tr>
             </thead>
@@ -84,6 +89,7 @@
                 {% if item[1].inferenceTime %}
                     <tr>
                         <td>{{ item[0] }}</td>
+                        <td>{{ item[1].buildTime }}</td>
                         <td>{{ item[1].inferenceTime }}</td>
                     </tr>
                 {% endif %}

@@ -5,7 +5,7 @@ const config = require("../../../config.json");
 
 async function imageClassificationTest({ backend, dataType, model } = {}) {
   const source = "samples";
-  const sample = "imageClassification";
+  const sample = "image-classification";
   const results = {};
 
   const testExecution = async (backend, dataType, model) => {
@@ -69,6 +69,7 @@ async function imageClassificationTest({ backend, dataType, model } = {}) {
       pageResults = util.replaceEmptyData(pageResults);
       console.log("Test Results: ", pageResults);
 
+      _.set(results, [sample, backend, dataType, model, "buildTime"], pageResults.buildTime);
       _.set(results, [sample, backend, dataType, model, "inferenceTime"], pageResults.inferenceTime);
       await util.saveScreenshot(page, screenshotFilename);
     } catch (error) {

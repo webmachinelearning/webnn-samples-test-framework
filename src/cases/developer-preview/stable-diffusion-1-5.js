@@ -5,8 +5,8 @@ const config = require("../../../config.json");
 const processInfo = require("../../utils/process.js");
 
 async function stableDiffusion15Test({ backend, dataType, model } = {}) {
-  let source = "developerPreview";
-  let sample = "stableDiffusion15";
+  let source = "developer-preview";
+  let sample = "stable-diffusion-1-5";
   let results = {};
 
   const pageElement = pageElementTotal[sample];

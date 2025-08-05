@@ -65,7 +65,7 @@ async function renderResultsAsHTML(data) {
   }
 
   let result = {};
-  traverse({ samples: data.samples, developerPreview: data.developerPreview }, [], result);
+  traverse({ samples: data.samples, "developer-preview": data["developer-preview"] }, [], result);
   const inferenceTimeResult = Object.fromEntries(Object.entries(result).filter(([_, value]) => value.inferenceTime));
   const firstAverageMedianBestResult = Object.fromEntries(Object.entries(result).filter(([_, value]) => value.average));
   let aggregatedFailures = {};
