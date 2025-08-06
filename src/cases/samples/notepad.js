@@ -1,9 +1,8 @@
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 
-async function notepadTest({ backend, dataType, model } = {}) {
+async function notepadTest({ config, backend, dataType, model } = {}) {
   const source = "samples";
   let sample = "notepad";
   let results = {};
@@ -23,7 +22,7 @@ async function notepadTest({ backend, dataType, model } = {}) {
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       // open a new page
       page = await browser.newPage();
       // set the default timeout time for the page

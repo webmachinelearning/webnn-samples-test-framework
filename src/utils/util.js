@@ -4,13 +4,10 @@ const { spawnSync, execSync } = require("child_process");
 const si = require("systeminformation");
 const dayjs = require("dayjs");
 const path = require("path");
-const config = require("../../config.json");
 const puppeteer = require("puppeteer");
 const { createCanvas, Image, loadImage } = require("canvas");
 const prettier = require("prettier");
 const env = require("../../env.json");
-const yargs = require("yargs/yargs");
-const { hideBin } = require("yargs/helpers");
 
 let cliArgs = {};
 let chromePath;
@@ -30,7 +27,7 @@ function replacePathString(str) {
   return str.replace(/\\/g, "/");
 }
 
-function getBrowserArgs() {
+function getBrowserArgs(config) {
   // puppeteer will manipulate the args, so we create a copy
   const browserArgs = [...config["browserArgs"]];
   if (env.proxy.host) {
@@ -39,7 +36,8 @@ function getBrowserArgs() {
   return browserArgs;
 }
 
-function getBrowserPath(browser) {
+function getBrowserPath(config) {
+  const browser = config.browser;
   let userDataDir;
   if (config.browserUserData && config.browserUserDataPath) {
     userDataDir = config.browserUserDataPath;
@@ -102,12 +100,12 @@ function getBrowserPath(browser) {
   return { browserPath, userDataDir };
 }
 
-async function launchBrowser(config, backend) {
-  const { browserPath, userDataDir } = getBrowserPath(config.browser);
+async function launchBrowser(config) {
+  const { browserPath, userDataDir } = getBrowserPath(config);
   return await puppeteer.launch({
     headless: config.headless,
     defaultViewport: null,
-    args: getBrowserArgs(backend),
+    args: getBrowserArgs(config),
     executablePath: browserPath,
     ignoreHTTPSErrors: true,
     protocolTimeout: config.timeout,
@@ -335,7 +333,7 @@ async function getNPUInfo() {
 }
 
 // get device info
-async function getDeviceInfo() {
+async function getDeviceInfo(config) {
   let deviceInfo = {};
   deviceInfo["hostname"] = config["hostname"] ? config["hostname"] : os.hostname();
   deviceInfo.platform = os.platform();
@@ -343,7 +341,7 @@ async function getDeviceInfo() {
   deviceInfo["developerPreviewUrl"] = config["developerPreviewBasicUrl"];
   deviceInfo["browser"] = config["browser"];
   deviceInfo["browserArgs"] = config["browserArgs"];
-  const { browserPath, userDataDir } = getBrowserPath(config["browser"]);
+  const { browserPath, userDataDir } = getBrowserPath(config);
   deviceInfo["browserPath"] = browserPath;
 
   try {
@@ -479,9 +477,9 @@ async function clickElementIfEnabled(page, selector) {
   }
 }
 
-function killBrowserProcess() {
+function killBrowserProcess(config) {
   const platform = os.platform();
-  const browserProcess = getBrowserProcess();
+  const browserProcess = getBrowserProcess(config);
 
   if (platform === "win32") {
     spawnSync("cmd", ["/c", `taskkill /F /IM ${browserProcess} /T`]);
@@ -490,7 +488,7 @@ function killBrowserProcess() {
   }
 }
 
-function getBrowserProcess() {
+function getBrowserProcess(config) {
   const platform = os.platform();
   const browser = config.browser;
 
@@ -514,7 +512,7 @@ function getBrowserProcess() {
   }
 }
 
-function generateSupportedSamplesArray() {
+function generateSupportedSamplesArray(config) {
   const allSupportedSamples = [];
 
   function parseJSON(obj, currentPath, result = []) {
@@ -565,108 +563,6 @@ function getBestValue(arr) {
   const numericArray = arr.map(parseFloat).filter((value) => !isNaN(value));
   const bestValue = numericArray.length > 0 ? Math.min(...numericArray) : 0;
   return bestValue.toFixed(2);
-}
-
-// parse the parameter args in cli commands and set the value into the config
-function parseTestCliArgs(processArgv) {
-  const helpMessage = `
-##### WebNN Samples Test #####
-
-Usage:
-  npm test -- [options]
-
-Options:
-  -h, --help                    Print this message
-  -f=, --filter=                Specify the specific single sample test
-  --browserAppPath=             Specify browser 'Application' folder path (relative | absolute)
-                                Relative path should be based on sample test root
-  --browserUserDataPath=        Specify browser 'User Data' folder path (relative | absolute)
-                                Relative path should be based on sample test root
-      `;
-
-  // distinguish the `--help` option because it is the default handling value in yargs
-  if (processArgv.length === 3 && processArgv[2] === "--help") {
-    console.log(helpMessage);
-    console.log(">>> All supported samples are as followings, select one from them.");
-    console.table(generateSupportedSamplesArray());
-    process.exit();
-  }
-
-  const args = yargs(hideBin(processArgv)).parse();
-
-  // "_", "$0" are default element after `yargs` parse.
-  const validArgs = ["h", "help", "f", "filter", "browserAppPath", "browserUserDataPath", "_", "$0"];
-  const invalidArgs = Object.keys(args).filter((arg) => !validArgs.includes(arg));
-
-  if (invalidArgs.length > 0) {
-    console.log(`Invalid arguments: ${invalidArgs.join(", ")}`);
-    process.exit(1);
-  }
-
-  if (args.h) {
-    console.log(helpMessage);
-    console.log(">>> All supported samples are as followings, select one from them.");
-    console.table(generateSupportedSamplesArray());
-    process.exit();
-  }
-
-  if (args.filter || args.f || args.filter === "" || args.filter === "") {
-    const filter = args.filter || args.f;
-    const allSupportedSamples = generateSupportedSamplesArray();
-    if (!allSupportedSamples.includes(filter)) {
-      console.log(">>> The sample filter provided is invalid, all supported samples are as followings");
-      console.table(generateSupportedSamplesArray());
-      process.exit();
-    }
-  }
-
-  if (args.hasOwnProperty("browserAppPath") && args.browserAppPath === "") {
-    console.log("Invalid browserAppPath. Please specify the valid one.");
-    process.exit();
-  }
-  if (args.hasOwnProperty("browserUserDataPath") && args.browserUserDataPath === "") {
-    console.log("Invalid browserUserDataPath path. Please specify the valid one.");
-    process.exit();
-  }
-
-  // Strip quotes from paths if present
-  const cleanPath = (str) => (str ? str.replace(/^['"]|['"]$/g, "") : str);
-
-  let browserAppPath = cleanPath(args.browserAppPath);
-  let browserUserDataPath = cleanPath(args.browserUserDataPath);
-
-  cliArgs.filter = args.filter || args.f;
-
-  // Check if overrides are needed and update config
-  const updates = {};
-
-  if (browserAppPath) {
-    // save the original value into cliArgs object
-    cliArgs.browserAppPath = browserAppPath;
-    // convert into absolute path
-    browserAppPath = path.isAbsolute(browserAppPath) ? browserAppPath : path.resolve(__dirname, "..", browserAppPath);
-    if (config.browserAppPath !== browserAppPath) {
-      updates.browserAppPath = browserAppPath;
-    }
-  }
-
-  if (browserUserDataPath) {
-    // save the original value into cliArgs object
-    cliArgs.browserUserDataPath = browserUserDataPath;
-    // convert into absolute path
-    browserUserDataPath = path.isAbsolute(browserUserDataPath)
-      ? browserUserDataPath
-      : path.resolve(__dirname, "..", browserUserDataPath);
-    if (config.browserUserDataPath !== browserUserDataPath) {
-      updates.browserUserDataPath = browserUserDataPath;
-    }
-  }
-
-  // If any updates were made, update config and write back to file
-  if (Object.keys(updates).length > 0) {
-    Object.assign(config, updates);
-    fs.writeFileSync(path.join(__dirname, "..", "..", "config.json"), JSON.stringify(config, null, 2), "utf-8");
-  }
 }
 
 async function checkImageGeneration(imagePath) {
@@ -727,8 +623,6 @@ async function checkImageGeneration(imagePath) {
 }
 
 module.exports = {
-  getBrowserArgs,
-  getBrowserPath,
   launchBrowser,
   getTimestamp,
   saveJsonFile,
@@ -754,7 +648,6 @@ module.exports = {
   calculateAverage,
   getMedianValue,
   getBestValue,
-  parseTestCliArgs,
   cliArgs,
   copyFile,
   checkImageGeneration

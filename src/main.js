@@ -3,77 +3,85 @@ const path = require("path");
 
 const _ = require("lodash");
 
-const config = require("../config.json");
 const env = require("../env.json");
 const util = require("./utils/util.js");
 const { renderResultsAsHTML, report, scpUpload } = require("./utils/report.js");
+const { program } = require("commander");
 
 const parseFilter = (filter) => {
   const regexPattern =
     /^(samples|developer-preview)-([a-zA-Z0-9-]+)-(cpu|gpu|npu)(?:-(fp16|fp32|_))?(?:-([a-zA-Z0-9_]+|_))?$/;
   const match = filter.match(regexPattern);
   if (!match) {
-    console.error("No match found for:", filter);
     return null;
   }
 
   const [, source, sampleName, backend, dataType, model] = match;
-  return {
-    sampleName,
-    source,
-    backend,
-    dataType,
-    model
-  };
+  return { sampleName, source, backend, dataType, model };
 };
 
-const executeTestModule = async (sampleName, source, backend, dataType, model, results) => {
+const executeTestModule = async ({ config, sampleName, source, backend, dataType, model, results }) => {
   try {
     const testModule = require(`./cases/${source}/${sampleName}.js`);
-    const resultsSamples = await testModule({ backend, dataType, model });
+    const resultsSamples = await testModule({ config, backend, dataType, model });
     _.merge(results[source], resultsSamples);
   } catch (error) {
     console.error(`Error occurred when testing '${sampleName}':`, error.message);
   } finally {
     // kill browser after each sample test execution to ensure the memory is freed
-    util.killBrowserProcess();
+    util.killBrowserProcess(config);
   }
 };
 
-const executeSampleTests = async (samples, source, results) => {
-  if (!samples) return;
-  results[source] = {};
+program
+  .name("npm test --")
+  .description("WebNN Sample Test")
+  .option("-c --config <path>", "Specify the config file path", "config.json")
+  .option("-f, --filters [filter...]", "Specify the specific single sample test")
+  .option("-b --browser-dir <path>", "Specify browser 'Application' folder path")
+  .option("-d --user-data-dir <path>", "Specify browser 'User Data' folder path");
 
-  for (let sample of Object.keys(samples)) {
-    await executeTestModule(sample, source, null, null, null, results);
-  }
-};
-
-const main = async () => {
+program.action(async ({ config: configPath, filters, browserDir, userDataDir }) => {
   try {
-    const results = {};
-    util.parseTestCliArgs(process.argv);
-    const { filter } = util.cliArgs;
+    const config = require(path.resolve(process.cwd(), configPath));
 
-    util.killBrowserProcess();
+    if (filters === true) {
+      console.log("Available filters:");
+      console.table(util.generateSupportedSamplesArray(config));
+      return;
+    } else if (Array.isArray(filters)) {
+      for (let i = 0; i < filters.length; i++) {
+        const parsedFilter = parseFilter(filters[i]);
+        if (!parsedFilter) {
+          console.error(`Invalid filter: ${filters[i]}`);
+          console.log("Available filters:");
+          console.table(util.generateSupportedSamplesArray(config));
+          return;
+        }
+        filters[i] = parsedFilter;
+      }
+    }
 
-    if (filter) {
-      const parsedFilter = parseFilter(filter);
-      if (!parsedFilter) return;
+    config.browserAppPath = browserDir ?? config.browserAppPath;
+    config.browserUserDataPath = userDataDir ?? config.browserUserDataPath;
+    util.killBrowserProcess(config);
 
-      results.deviceInfo = await util.getDeviceInfo();
-
-      const { source, sampleName, backend, dataType, model } = parsedFilter;
-      results[source] = {};
-      await executeTestModule(sampleName, source, backend, dataType, model, results);
+    const results = { deviceInfo: await util.getDeviceInfo(config) };
+    if (filters) {
+      for (const filter of filters) {
+        results[filter.source] = {};
+        await executeTestModule({ config, ...filter, results });
+      }
     } else {
-      results.deviceInfo = await util.getDeviceInfo();
-
-      const SAMPLES = config?.["samples"];
-      const DEVELOPER_PREVIEW_DEMO = config?.["developer-preview"];
-
-      await executeSampleTests(SAMPLES, "samples", results);
-      await executeSampleTests(DEVELOPER_PREVIEW_DEMO, "developer-preview", results);
+      for (const source of ["samples", "developer-preview"]) {
+        results[source] = {};
+        const samples = config?.[source];
+        if (samples) {
+          for (const sampleName of Object.keys(samples)) {
+            await executeTestModule({ config, sampleName, source, results });
+          }
+        }
+      }
     }
 
     const jsonPath = await util.saveJsonFile(results);
@@ -95,6 +103,6 @@ const main = async () => {
   } catch (error) {
     console.error("Unexpected error during test execution:", error.message);
   }
-};
+});
 
-main();
+program.parse();

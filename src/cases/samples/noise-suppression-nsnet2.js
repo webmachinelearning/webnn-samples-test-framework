@@ -1,9 +1,8 @@
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 
-async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
+async function noiseSuppressionNsNet2Test({ config, backend, dataType, model } = {}) {
   const source = "samples";
   const sample = "noise-suppression-nsnet2";
   const results = {};
@@ -38,7 +37,7 @@ async function noiseSuppressionNsNet2Test({ backend, dataType, model } = {}) {
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       page = await browser.newPage();
       page.setDefaultTimeout(config["timeout"]);
 

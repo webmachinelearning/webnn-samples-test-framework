@@ -4,9 +4,8 @@
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 
-async function switchBackendTest() {
+async function switchBackendTest({ config }) {
   let source = "samples";
   let sample = "switchBackendTest";
 

@@ -7,7 +7,6 @@ const { Liquid } = require("liquidjs");
 const nodemailer = require("nodemailer");
 
 const env = require("../../env.json");
-const config = require("../../config.json");
 const util = require("./util.js");
 
 async function renderResultsAsHTML(data) {
@@ -133,7 +132,7 @@ async function report(results) {
   }
   const hostname = env.hostname || os.hostname();
   const reportTime = util.getTimestamp(true);
-  let subject = `[Sample Test][${config.browser}] ${hostname} ${reportTime}`;
+  let subject = `[Sample Test][${results.deviceInfo.browser}] ${hostname} ${reportTime}`;
 
   try {
     await sendMail(subject, await renderResultsAsHTML(results), [

@@ -2,9 +2,8 @@ const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
 const path = require("path");
-const config = require("../../../config.json");
 
-async function objectDetectionTest({ backend, dataType, model } = {}) {
+async function objectDetectionTest({ config, backend, dataType, model } = {}) {
   const source = "samples";
   const sample = "object-detection";
   const results = {};
@@ -19,16 +18,13 @@ async function objectDetectionTest({ backend, dataType, model } = {}) {
 
     console.log(`${source} ${sample} ${backend} ${dataType} ${model} testing...`);
 
-    // set browser args, browser path
-    const args = util.getBrowserArgs(backend);
-    const { browserPath, userDataDir } = util.getBrowserPath(config.browser);
     const screenshotFilename = `${source}_${sample}_${backend}_${dataType}_${model}`;
     let errorMsg = "";
     let browser;
     let page;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       // open a new page
       page = await browser.newPage();
       // set the default timeout time for the page

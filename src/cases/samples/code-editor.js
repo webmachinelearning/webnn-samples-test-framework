@@ -1,9 +1,8 @@
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
-const config = require("../../../config.json");
 
-async function codeEditorTest({ backend, dataType, model } = {}) {
+async function codeEditorTest({ config, backend, dataType, model } = {}) {
   let source = "samples";
   let sample = "codeEditor";
   let results = {};
@@ -19,7 +18,7 @@ async function codeEditorTest({ backend, dataType, model } = {}) {
     let browser;
 
     try {
-      browser = await util.launchBrowser(config, backend);
+      browser = await util.launchBrowser(config);
       // open a new page
       const page = await browser.newPage();
       // set the default timeout time for the page

@@ -6,9 +6,8 @@ const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const _ = require("lodash");
 const path = require("path");
-const config = require("../../../config.json");
 
-async function switchSampleTest() {
+async function switchSampleTest({ config }) {
   let totalResults = {};
 
   const source = "samples";
@@ -17,7 +16,7 @@ async function switchSampleTest() {
   totalResults[sampleTest] = {};
 
   console.log(`${source} ${sampleTest} testing...`);
-  let browser = await util.launchBrowser(config, backend);
+  let browser = await util.launchBrowser(config);
 
   const page = await browser.newPage();
   page.setDefaultTimeout(config["timeout"]);
