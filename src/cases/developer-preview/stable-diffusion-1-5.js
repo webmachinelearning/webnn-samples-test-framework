@@ -25,7 +25,7 @@ async function stableDiffusion15Test({ config, backend, dataType, model } = {}) 
 
     try {
       browser = await util.launchBrowser(config);
-      page = await browser.newPage();
+      page = (await browser.pages())[0];
       page.setDefaultTimeout(config["timeout"]);
 
       // navigate the page to a URL

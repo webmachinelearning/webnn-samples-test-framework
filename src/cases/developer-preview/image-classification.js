@@ -43,7 +43,7 @@ async function imageClassificationPreviewTest({ config, backend, dataType, model
 
     try {
       browser = await util.launchBrowser(config);
-      page = await browser.newPage();
+      page = (await browser.pages())[0];
       page.setDefaultTimeout(config.timeout);
 
       const urlQuery = qs.stringify({
@@ -88,7 +88,7 @@ async function imageClassificationPreviewTest({ config, backend, dataType, model
 
     try {
       browser = await util.launchBrowser(config);
-      page = await browser.newPage();
+      page = (await browser.pages())[0];
       page.setDefaultTimeout(config.timeout);
 
       const urlQuery = qs.stringify({
@@ -140,7 +140,7 @@ async function imageClassificationPreviewTest({ config, backend, dataType, model
 
     try {
       browser = await util.launchBrowser(config);
-      page = await browser.newPage();
+      page = (await browser.pages())[0];
       page.setDefaultTimeout(config.timeout);
       await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}`, {
         waitUntil: "networkidle0"

@@ -354,7 +354,7 @@ async function getDeviceInfo(config) {
       protocolTimeout: config["timeout"],
       userDataDir: userDataDir
     });
-    const page = await browser.newPage();
+    const page = (await browser.pages())[0];
 
     // Edge version and Chromium version
     if (deviceInfo["browser"].match("edge_")) {

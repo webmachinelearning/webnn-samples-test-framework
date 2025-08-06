@@ -19,8 +19,7 @@ async function codeEditorTest({ config, backend, dataType, model } = {}) {
 
     try {
       browser = await util.launchBrowser(config);
-      // open a new page
-      const page = await browser.newPage();
+      const page = (await browser.pages())[0];
       // set the default timeout time for the page
       page.setDefaultTimeout(config["timeout"]);
 

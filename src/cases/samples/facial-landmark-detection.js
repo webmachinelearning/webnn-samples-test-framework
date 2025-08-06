@@ -31,7 +31,7 @@ async function facialLandmarkDetectionTest({ config, backend, dataType, model } 
 
     try {
       browser = await util.launchBrowser(config);
-      page = await browser.newPage();
+      page = (await browser.pages())[0];
       page.setDefaultTimeout(config["timeout"]);
       await page.goto(`${config["samplesBasicUrl"]}${config["samplesUrl"][sample]}`, {
         waitUntil: "networkidle0"

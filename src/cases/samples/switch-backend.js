@@ -86,7 +86,7 @@ async function switchBackendTest({ config }) {
   // launch the browser
   try {
     browser = await util.launchBrowser(config);
-    const page = await browser.newPage();
+    const page = (await browser.pages())[0];
     page.setDefaultTimeout(config["timeout"]);
 
     // navigate the page to a URL
