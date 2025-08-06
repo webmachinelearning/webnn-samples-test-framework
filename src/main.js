@@ -61,15 +61,13 @@ const main = async () => {
       const parsedFilter = parseFilter(filter);
       if (!parsedFilter) return;
 
-      await util.getConfig();
-      results.deviceInfo = util.deviceInfo;
+      results.deviceInfo = await util.getDeviceInfo();
 
       const { source, sampleName, backend, dataType, model } = parsedFilter;
       results[source] = {};
       await executeTestModule(sampleName, source, backend, dataType, model, results);
     } else {
-      await util.getConfig();
-      results.deviceInfo = util.deviceInfo;
+      results.deviceInfo = await util.getDeviceInfo();
 
       const SAMPLES = config?.["samples"];
       const DEVELOPER_PREVIEW_DEMO = config?.["developer-preview"];
