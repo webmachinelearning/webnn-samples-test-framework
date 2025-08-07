@@ -301,7 +301,8 @@ program
       .default(["cpu", "gpu", "npu"])
   )
   .addOption(new Option("-e, --backend <backend>", "The backend to use").choices(["ort", "tflite"]).default("ort"))
-  .action(async ({ devices, browser, backend }) => {
+  .option("-o, --output <path>", "The output config file path", "config.json")
+  .action(async ({ devices, browser, backend, output }) => {
     if (process.platform === "linux" && browser === "edge_canary") {
       console.error("edge_canary is not available on linux.");
       return;
@@ -313,7 +314,7 @@ program
       devices.splice(devices.indexOf("npu"), 1);
     }
 
-    const config = { browser, ...filterSamplesWithDevices(ORIGINAL_CONFIG, devices) };
+    const config = { backend, browser, ...filterSamplesWithDevices(ORIGINAL_CONFIG, devices) };
     if (backend === "ort") {
       config.browserArgs.push("--enable-features=WebMachineLearningNeuralNetwork,WebNNOnnxRuntime");
     } else if (backend === "tflite") {
@@ -323,7 +324,7 @@ program
       );
     }
 
-    fs.writeFileSync("config.json", JSON.stringify(config, null, 2));
-    console.log(`Generated config.json for ${browser} with ${backend} backend on ${devices.join("-")}`);
+    fs.writeFileSync(output, JSON.stringify(config, null, 2));
+    console.log(`Generated ${output} for ${browser} with ${backend} backend on ${devices.join("-")}`);
   })
   .parse();

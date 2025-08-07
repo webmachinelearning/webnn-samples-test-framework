@@ -334,13 +334,15 @@ async function getNPUInfo() {
 
 // get device info
 async function getDeviceInfo(config) {
-  let deviceInfo = {};
-  deviceInfo["hostname"] = config["hostname"] ? config["hostname"] : os.hostname();
-  deviceInfo.platform = os.platform();
-  deviceInfo["samplesUrl"] = config["samplesBasicUrl"];
-  deviceInfo["developerPreviewUrl"] = config["developerPreviewBasicUrl"];
-  deviceInfo["browser"] = config["browser"];
-  deviceInfo["browserArgs"] = config["browserArgs"];
+  let deviceInfo = {
+    hostname: config.hostname || os.hostname(),
+    platform: os.platform(),
+    samplesUrl: config.samplesBasicUrl,
+    developerPreviewUrl: config.developerPreviewBasicUrl,
+    backend: config.backend,
+    browser: config.browser,
+    browserArgs: config.browserArgs
+  };
   const { browserPath, userDataDir } = getBrowserPath(config);
   deviceInfo["browserPath"] = browserPath;
 
