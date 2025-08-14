@@ -67,15 +67,17 @@ program.action(async ({ config: configPath, filters, browserDir, userDataDir }) 
     config.browserUserDataPath = userDataDir ?? config.browserUserDataPath;
     util.killBrowserProcess(config);
 
-    const results = { deviceInfo: await util.getDeviceInfo(config) };
+    const results = {
+      deviceInfo: await util.getDeviceInfo(config),
+      samples: {},
+      "developer-preview": {}
+    };
     if (filters) {
       for (const filter of filters) {
-        results[filter.source] = {};
         await executeTestModule({ config, ...filter, results });
       }
     } else {
       for (const source of ["samples", "developer-preview"]) {
-        results[source] = {};
         const samples = config?.[source];
         if (samples) {
           for (const sampleName of Object.keys(samples)) {
