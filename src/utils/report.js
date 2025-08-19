@@ -67,6 +67,18 @@ async function renderResultsAsHTML(data) {
   traverse({ samples: data.samples, "developer-preview": data["developer-preview"] }, [], result);
   const inferenceTimeResult = Object.fromEntries(Object.entries(result).filter(([_, value]) => value.inferenceTime));
   const firstAverageMedianBestResult = Object.fromEntries(Object.entries(result).filter(([_, value]) => value.average));
+  const tokenPerSecondResult = {};
+  for (let [key, value] of Object.entries(result).filter(([_, value]) => value.tokensPerSecond)) {
+    let prefix = key.split("-").slice(0, -1).join("-");
+    let model = key.split("-").slice(-1)[0];
+    if (!tokenPerSecondResult[prefix]) {
+      tokenPerSecondResult[prefix] = { models: [model], tokensPerSecond: value.tokensPerSecond };
+    } else if (tokenPerSecondResult[prefix].tokensPerSecond !== value.tokensPerSecond) {
+      tokenPerSecondResult[key] = { models: [], tokensPerSecond: value.tokensPerSecond };
+    } else {
+      tokenPerSecondResult[prefix].models.push(model);
+    }
+  }
   let aggregatedFailures = {};
   for (let failure of failuresSamples) {
     let key = failure.variable.split("-").slice(0, -1).join("-");
@@ -100,6 +112,7 @@ async function renderResultsAsHTML(data) {
       deviceInfo: data.deviceInfo,
       inferenceTimeResult,
       firstAverageMedianBestResult,
+      tokenPerSecondResult,
       memory: memoryConsumptionData,
       footer: env.emailService.footer,
       signature: env.emailService.signature ?? "WebNN Team"
