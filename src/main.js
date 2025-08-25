@@ -44,6 +44,7 @@ program
 program.action(async ({ config: configPath, filters, browserDir, userDataDir }) => {
   try {
     const config = require(path.resolve(process.cwd(), configPath));
+    console.log(`Using config file: ${configPath}`);
 
     if (filters === true) {
       console.log("Available filters:");

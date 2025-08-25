@@ -132,7 +132,7 @@ async function report(results) {
   }
   const hostname = env.hostname || os.hostname();
   const reportTime = util.getTimestamp(true);
-  let subject = `[Sample Test][${results.deviceInfo.browser}] ${hostname} ${reportTime}`;
+  let subject = `[Sample Test][${results.deviceInfo.browser}][${results.deviceInfo.backend}] ${hostname} ${reportTime}`;
 
   try {
     await sendMail(subject, await renderResultsAsHTML(results), [
