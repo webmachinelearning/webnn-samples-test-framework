@@ -73,7 +73,7 @@ Available filters:
 ┌─────────┬──────────────────────────────────────────────────────────────────────────┐
 │ (index) │ Values                                                                   │
 ├─────────┼──────────────────────────────────────────────────────────────────────────┤
-│ 0       │ 'samples-image-classification-cpu-fp32-mobileNetV2'            │
+│ 0       │ 'samples-image-classification-cpu-fp32-mobileNetV2'                      │
 | ...     | ...                                                                      │
 └─────────┴──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -88,9 +88,7 @@ $ npm test -- -f samples-image-classification-cpu-fp32-mobileNetV2
 
 #### Dependency
 
-Node
-
-> NOTE: The command `npm run [command] -- [options | args]` may not work correctly in `PowerShell` on Windows with certain Node.js versions. It has been tested successfully on Node.js `22.11.0`, but may fail on later versions until fixing [issue 7375](https://github.com/npm/cli/issues/7375). If you encounter issues, try running it in a different terminal, such as `Git Bash`.
+Node.js (known working version: 22.11.0)
 
 #### Platform
 
