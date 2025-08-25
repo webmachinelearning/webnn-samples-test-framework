@@ -26,7 +26,16 @@
 
 <p>Test Summary (Failed / Total): {{ failed }} / {{ total }}</p>
 
-{% if failedCases %}
+{% if sessionCreate %}
+    <h3>WebNN Error in chrome://gpu</h3>
+    <ul>
+        {% for line in sessionCreate %}
+            <li>{{ line }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% if failedCases != empty %}
     <table>
         <thead>
         <tr>
@@ -73,88 +82,88 @@
     <br>
 {% endif %}
 
-{% if inferenceTimeResult or firstAverageMedianBestResult %}
+{% if inferenceTimeResult != empty or firstAverageMedianBestResult != empty or tokenPerSecondResult != empty %}
     <h3>Performance</h3>
-    {% if inferenceTimeResult != empty %}
-        <table class="number-data">
-            <thead>
-            <tr>
-                <th>Demo</th>
-                <th>Build<br>Time (ms)</th>
-                <th>Inference<br>Time (ms)</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in inferenceTimeResult %}
-                {% if item[1].inferenceTime %}
-                    <tr>
-                        <td>{{ item[0] }}</td>
-                        <td>{{ item[1].buildTime }}</td>
-                        <td>{{ item[1].inferenceTime }}</td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-    {% endif %}
-    {% if firstAverageMedianBestResult != empty %}
-        <table class="number-data">
-            <thead>
-            <tr>
-                <th>Demo</th>
-                <th>Build<br>Time (ms)</th>
-                <th>First<br>(ms)</th>
-                <th>Average<br>(ms)</th>
-                <th>Median<br>(ms)</th>
-                <th>Best<br>(ms)</th>
-                <th>Throughput<br>(FPS)</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in firstAverageMedianBestResult %}
-                {% if item[1].average %}
-                    <tr>
-                        <td>{{ item[0] }}</td>
-                        <td>{{ item[1].buildTime }}</td>
-                        <td>{{ item[1].first }}</td>
-                        <td>{{ item[1].average }}</td>
-                        <td>{{ item[1].median }}</td>
-                        <td>{{ item[1].best }}</td>
-                        <td>{{ item[1].throughput }}</td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-    {% endif %}
-    {% if tokenPerSecondResult != empty %}
-        <table class="number-data">
-            <thead>
-            <tr>
-                <th>Demo</th>
-                <th>Models</th>
-                <th>Tokens<br>Per Second</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in tokenPerSecondResult %}
-                {% if item[1].tokensPerSecond %}
-                    <tr>
-                        <td>{{ item[0] }}</td>
-                        <td>{{ item[1].models | join: ", " }}</td>
-                        <td>{{ item[1].tokensPerSecond }}</td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-    {% endif %}
+{% endif %}
+{% if inferenceTimeResult != empty %}
+    <table class="number-data">
+        <thead>
+        <tr>
+            <th>Demo</th>
+            <th>Build<br>Time (ms)</th>
+            <th>Inference<br>Time (ms)</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in inferenceTimeResult %}
+            {% if item[1].inferenceTime %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td>{{ item[1].buildTime }}</td>
+                    <td>{{ item[1].inferenceTime }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+{% endif %}
+{% if firstAverageMedianBestResult != empty %}
+    <table class="number-data">
+        <thead>
+        <tr>
+            <th>Demo</th>
+            <th>Build<br>Time (ms)</th>
+            <th>First<br>(ms)</th>
+            <th>Average<br>(ms)</th>
+            <th>Median<br>(ms)</th>
+            <th>Best<br>(ms)</th>
+            <th>Throughput<br>(FPS)</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in firstAverageMedianBestResult %}
+            {% if item[1].average %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td>{{ item[1].buildTime }}</td>
+                    <td>{{ item[1].first }}</td>
+                    <td>{{ item[1].average }}</td>
+                    <td>{{ item[1].median }}</td>
+                    <td>{{ item[1].best }}</td>
+                    <td>{{ item[1].throughput }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+{% endif %}
+{% if tokenPerSecondResult != empty %}
+    <table class="number-data">
+        <thead>
+        <tr>
+            <th>Demo</th>
+            <th>Models</th>
+            <th>Tokens<br>Per Second</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in tokenPerSecondResult %}
+            {% if item[1].tokensPerSecond %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td>{{ item[1].models | join: ", " }}</td>
+                    <td>{{ item[1].tokensPerSecond }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
 {% endif %}
 
-{% if memory %}
+{% if memory != empty %}
     <h3>Memory Consumption</h3>
     <table class="number-data">
         <thead>

@@ -12,26 +12,13 @@ const util = require("./util.js");
 async function renderResultsAsHTML(data) {
   const failuresSamples = [];
   const memoryConsumptionData = {};
-  const testSummaryResults = [];
-  let totalCaseCount = 0;
 
   function traverse(obj, path = [], result) {
     for (const key in obj) {
       if (key === "error") {
-        // make each sample case has error attribute account
-        totalCaseCount++;
         const variable = path.join("-");
-        // if error is not empty
-        if (obj[key]) {
+        if (obj.error) {
           failuresSamples.push({ variable, error: obj[key] });
-          testSummaryResults.push({ variable, status: "fail" });
-        } else {
-          // initialize the samples that do not have performance results
-          // code editor & notepad
-          if (!result[variable]) {
-            result[variable] = {};
-          }
-          testSummaryResults.push({ variable, status: "pass" });
         }
       }
       // collect performance data
@@ -107,9 +94,10 @@ async function renderResultsAsHTML(data) {
     .renderFile("mail.liquid", {
       header: env.emailService.header,
       failed: failuresSamples.length,
-      total: totalCaseCount,
+      total: Object.entries(result).length + failuresSamples.length,
       failedCases: Object.values(aggregatedFailures),
       deviceInfo: data.deviceInfo,
+      sessionCreate: data.sessionCreate?.error,
       inferenceTimeResult,
       firstAverageMedianBestResult,
       tokenPerSecondResult,

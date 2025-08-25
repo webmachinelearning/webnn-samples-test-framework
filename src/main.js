@@ -7,6 +7,7 @@ const env = require("../env.json");
 const util = require("./utils/util.js");
 const { renderResultsAsHTML, report, scpUpload } = require("./utils/report.js");
 const { program } = require("commander");
+const sessionCreate = require("./cases/session-create.js");
 
 const parseFilter = (filter) => {
   const regexPattern =
@@ -42,36 +43,46 @@ program
   .option("-d --user-data-dir <path>", "Specify browser 'User Data' folder path");
 
 program.action(async ({ config: configPath, filters, browserDir, userDataDir }) => {
-  try {
-    const config = require(path.resolve(process.cwd(), configPath));
-    console.log(`Using config file: ${configPath}`);
+  const config = require(path.resolve(process.cwd(), configPath));
+  console.log(`Using config file: ${configPath}`);
 
-    if (filters === true) {
-      console.log("Available filters:");
-      console.table(util.generateSupportedSamplesArray(config));
-      return;
-    } else if (Array.isArray(filters)) {
-      for (let i = 0; i < filters.length; i++) {
-        const parsedFilter = parseFilter(filters[i]);
-        if (!parsedFilter) {
-          console.error(`Invalid filter: ${filters[i]}`);
-          console.log("Available filters:");
-          console.table(util.generateSupportedSamplesArray(config));
-          return;
-        }
-        filters[i] = parsedFilter;
+  if (filters === true) {
+    console.log("Available filters:");
+    console.table(util.generateSupportedSamplesArray(config));
+    return;
+  } else if (Array.isArray(filters)) {
+    for (let i = 0; i < filters.length; i++) {
+      const parsedFilter = parseFilter(filters[i]);
+      if (!parsedFilter) {
+        console.error(`Invalid filter: ${filters[i]}`);
+        console.log("Available filters:");
+        console.table(util.generateSupportedSamplesArray(config));
+        return;
       }
+      filters[i] = parsedFilter;
     }
+  }
 
-    config.browserAppPath = browserDir ?? config.browserAppPath;
-    config.browserUserDataPath = userDataDir ?? config.browserUserDataPath;
-    util.killBrowserProcess(config);
+  config.browserAppPath = browserDir ?? config.browserAppPath;
+  config.browserUserDataPath = userDataDir ?? config.browserUserDataPath;
+  util.killBrowserProcess(config);
 
-    const results = {
-      deviceInfo: await util.getDeviceInfo(config),
-      samples: {},
-      "developer-preview": {}
-    };
+  const results = {
+    deviceInfo: await util.getDeviceInfo(config),
+    samples: {},
+    "developer-preview": {}
+  };
+
+  let failed = false;
+  for (const [name, test] of Object.entries({ sessionCreate })) {
+    try {
+      await test({ config });
+    } catch (error) {
+      failed = true;
+      results[name] = { error: error.message.split("\n") };
+    }
+  }
+  if (!failed) {
     if (filters) {
       for (const filter of filters) {
         await executeTestModule({ config, ...filter, results });
@@ -86,25 +97,23 @@ program.action(async ({ config: configPath, filters, browserDir, userDataDir }) 
         }
       }
     }
+  }
 
-    const jsonPath = await util.saveJsonFile(results);
-    // Copy the test results JSON file into `trends/data` in both `debug` and `production` modes.
-    // In `debug` mode, the `jsonPath` includes `minute` information, which is unnecessary
-    // for `trends` since it only compares and displays daily results.
-    util.copyFile(jsonPath, path.join(__dirname, "..", "trends", "data", require("os").hostname()), {
-      targetName: path.basename(jsonPath).substring(0, 8) + ".json"
-    });
+  const jsonPath = await util.saveJsonFile(results);
+  // Copy the test results JSON file into `trends/data` in both `debug` and `production` modes.
+  // In `debug` mode, the `jsonPath` includes `minute` information, which is unnecessary
+  // for `trends` since it only compares and displays daily results.
+  util.copyFile(jsonPath, path.join(__dirname, "..", "trends", "data", require("os").hostname()), {
+    targetName: path.basename(jsonPath).substring(0, 8) + ".json"
+  });
 
-    const htmlPath = jsonPath.split(".")[0] + ".html";
-    fs.writeFileSync(htmlPath, await renderResultsAsHTML(require(jsonPath)));
-    console.log(`Test results have been saved to ${jsonPath} and ${htmlPath}`);
+  const htmlPath = jsonPath.split(".")[0] + ".html";
+  fs.writeFileSync(htmlPath, await renderResultsAsHTML(require(jsonPath)));
+  console.log(`Test results have been saved to ${jsonPath} and ${htmlPath}`);
 
-    if (env.env === "production") {
-      await report(results);
-      await scpUpload(jsonPath);
-    }
-  } catch (error) {
-    console.error("Unexpected error during test execution:", error.message);
+  if (env.env === "production") {
+    await report(results);
+    await scpUpload(jsonPath);
   }
 });
 
