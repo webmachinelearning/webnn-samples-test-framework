@@ -3,6 +3,21 @@ const pageElementTotal = require("../../page-elements/developer-preview.js");
 const _ = require("lodash");
 const processInfo = require("../../utils/process.js");
 
+async function throwOnErrorLog(page) {
+  await page.waitForFunction(
+    (selector) => {
+      for (let line of document.querySelector(selector).innerText.split("\n")) {
+        if (line.includes("[Error]")) {
+          throw Error(line.split("[Error]")[1].trim());
+        }
+      }
+      return false;
+    },
+    {},
+    "#log"
+  );
+}
+
 async function stableDiffusionTurboTest({ config, backend, dataType, model } = {}) {
   let source = "developer-preview";
   let sample = "stable-diffusion-turbo";
@@ -106,6 +121,7 @@ async function stableDiffusionTurboTest({ config, backend, dataType, model } = {
             }
             await util.delay(1000);
           })(),
+          throwOnErrorLog(page),
           util.throwOnUncaughtException(page)
         ]);
 
@@ -125,11 +141,12 @@ async function stableDiffusionTurboTest({ config, backend, dataType, model } = {
         }
 
         const loadResults = {};
-        for (const model of ["textEncoder", "unet", "vae", "sc"]) {
+        for (const model of modelNameArray) {
           for (const method of ["Fetch", "Create"]) {
             const key = model + method;
             loadResults[key] = await page.$eval(pageElement[key], (el) => el.textContent);
           }
+          _.set(results, [sample, backend, dataType, model, "buildTime"], loadResults[model + "Create"]);
         }
 
         const executionResults = {
@@ -139,13 +156,10 @@ async function stableDiffusionTurboTest({ config, backend, dataType, model } = {
           safetyChecker: []
         };
 
-        for (let i = 1; i <= 4; i++) {
-          executionResults.textEncoder.push(
-            await page.$eval(pageElement[`textEncoderRun${i}`], (el) => el.textContent)
-          );
-          executionResults.unet.push(await page.$eval(pageElement[`unetRun${i}`], (el) => el.textContent));
-          executionResults.vaeDecoder.push(await page.$eval(pageElement[`vaeRun${i}`], (el) => el.textContent));
-          executionResults.safetyChecker.push(await page.$eval(pageElement[`scRun${i}`], (el) => el.textContent));
+        for (const key of modelNameArray) {
+          for (let i = 1; i <= 4; i++) {
+            executionResults[key].push(await page.$eval(pageElement[`${key}Run${i}`], (el) => el.textContent));
+          }
         }
 
         Object.entries(executionResults).forEach(([_model, _value]) => {

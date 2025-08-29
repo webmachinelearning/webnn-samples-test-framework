@@ -19,7 +19,6 @@ async function stableDiffusion15Test({ config, backend, dataType, model } = {}) 
     const screenshotFilename = model
       ? `${source}_${sample}_${backend}_${dataType}_${model}`
       : `${source}_${sample}_${backend}_${dataType}`;
-    let errorMsg = "";
     let browser;
     let page;
 
@@ -28,7 +27,6 @@ async function stableDiffusion15Test({ config, backend, dataType, model } = {}) 
       page = (await browser.pages())[0];
       page.setDefaultTimeout(config["timeout"]);
 
-      // navigate the page to a URL
       const urlArguments = config[source][sample]["urlArgs"][backend];
       await page.goto(`${config["developerPreviewBasicUrl"]}${config["developerPreviewUrl"][sample]}${urlArguments}`, {
         waitUntil: "networkidle0"
@@ -77,10 +75,7 @@ async function stableDiffusion15Test({ config, backend, dataType, model } = {}) 
       _.set(
         results,
         [sample, backend, dataType, "privateMemoryGpuPeak"],
-        gpuProcessInfo.PeakPagedMemorySize64 ??
-          gpuProcessInfo.peakMemory ??
-          gpuProcessInfo.VmHWMKb ??
-          gpuProcessInfo.error
+        gpuProcessInfo.PeakPagedMemorySize64 ?? gpuProcessInfo.VmHWMKb ?? gpuProcessInfo.error
       );
 
       for (let i = 0; i < config[source][sample]["rounds"]; i++) {
@@ -88,116 +83,63 @@ async function stableDiffusion15Test({ config, backend, dataType, model } = {}) 
         await Promise.race([
           (async () => {
             await page.click(pageElement["generateImageButton"]);
-            // wait results
             await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
           })(),
+          util.throwErrorOnElement(page, '#error'),
           util.throwOnUncaughtException(page)
         ]);
-        // get results
-        const textEncoderLoad = await page.$eval(pageElement["textEncoderLoad"], (el) => el.textContent);
-        const textEncoderFetch = await page.$eval(pageElement["textEncoderFetch"], (el) => el.textContent);
-        const textEncoderCreate = await page.$eval(pageElement["textEncoderCreate"], (el) => el.textContent);
-        const textEncoderRun = await page.$eval(pageElement["textEncoderRun"], (el) => el.textContent);
-
-        const unetLoad = await page.$eval(pageElement["unetLoad"], (el) => el.textContent);
-        const unetFetch = await page.$eval(pageElement["unetFetch"], (el) => el.textContent);
-        const unetCreate = await page.$eval(pageElement["unetCreate"], (el) => el.textContent);
-        const unetRunRaw = await page.$eval(pageElement["unetRun"], (el) => el.innerHTML);
-        const unetRun = unetRunRaw.split("<br>", 1)[0].split(" ");
-
-        const vaeDecoderLoad = await page.$eval(pageElement["vaeDecoderLoad"], (el) => el.textContent);
-        const vaeDecoderFetch = await page.$eval(pageElement["vaeDecoderFetch"], (el) => el.textContent);
-        const vaeDecoderCreate = await page.$eval(pageElement["vaeDecoderCreate"], (el) => el.textContent);
-        const vaeDecoderRun = await page.$eval(pageElement["vaeDecoderRun"], (el) => el.textContent);
-
-        const safetyCheckerLoad = await page.$eval(pageElement["safetyCheckerLoad"], (el) => el.textContent);
-        const safetyCheckerFetch = await page.$eval(pageElement["safetyCheckerFetch"], (el) => el.textContent);
-        const safetyCheckerCreate = await page.$eval(pageElement["safetyCheckerCreate"], (el) => el.textContent);
-        const safetyCheckerRun = await page.$eval(pageElement["safetyCheckerRun"], (el) => el.textContent);
-
-        // set results
-        let loadResults = {
-          textEncoderLoad,
-          textEncoderFetch,
-          textEncoderCreate,
-          unetLoad,
-          unetFetch,
-          unetCreate,
-          vaeDecoderLoad,
-          vaeDecoderFetch,
-          vaeDecoderCreate,
-          safetyCheckerLoad,
-          safetyCheckerFetch,
-          safetyCheckerCreate
-        };
-        let executionResults = {
-          textEncoderRun,
-          unetRun,
-          vaeDecoderRun,
-          safetyCheckerRun
-        };
-
-        Object.entries(executionResults).forEach(([_model, _value]) => {
-          const modelName = _model.replace("Run", "");
-          const pathArr = [sample, backend, dataType, modelName, "inferenceTime"];
-          if (!model || model === modelName) {
-            initializePath(pathArr);
-            addValueToPath(pathArr, modelName === "unet" ? _value[0] : _value);
-
-            // Unet results contains 20 iterations
-            if (modelName === "unet") {
-              // Calculate metrics
-              const metrics = {
-                average: util.calculateAverage(_value),
-                median: util.getMedianValue(_value),
-                best: util.getBestValue(_value)
-              };
-
-              // Store the metrics in resultsCI
-              Object.entries(metrics).forEach(([key, value]) => {
-                const path = [...pathArr.slice(0, -1), key];
-                initializePath(path);
-                addValueToPath(path, value);
-              });
-            }
-
-            console.log(_value);
+        for (const model of modelNameArray) {
+          const modelKey = config[source][sample]["rounds"] > 1 ? `${model}-run-${i + 1}` : model;
+          if (model === "unet") {
+            _.set(
+              results,
+              [sample, backend, dataType, modelKey, "build"],
+              await page.$eval(pageElement.unetCreate, (el) => el.textContent)
+            );
+            const unetRunRaw = await page.$eval(pageElement.unetRun, (el) => el.innerHTML);
+            const unetRuns = unetRunRaw.split("<br>", 1)[0].split(" ").map(Number);
+            _.set(results, [sample, backend, dataType, modelKey, "first"], unetRuns[0].toFixed(2));
+            _.set(results, [sample, backend, dataType, modelKey, "average"], util.calculateAverage(unetRuns));
+            _.set(results, [sample, backend, dataType, modelKey, "median"], util.getMedianValue(unetRuns));
+            _.set(results, [sample, backend, dataType, modelKey, "best"], util.getBestValue(unetRuns));
+          } else {
+            _.set(
+              results,
+              [sample, backend, dataType, modelKey, "buildTime"],
+              await page.$eval(pageElement[`${model}Create`], (el) => el.textContent)
+            );
+            _.set(
+              results,
+              [sample, backend, dataType, modelKey, "inferenceTime"],
+              await page.$eval(pageElement[`${model}Run`], (el) => el.textContent)
+            );
           }
-        });
-        console.log(`Load models results inferenceRound_${i}:`, loadResults);
-        console.log(`Test Results inferenceRound_${i}: `, executionResults);
+        }
+        console.log(results[sample][backend][dataType]);
       }
     } catch (error) {
-      errorMsg += error.message;
+      if (model) {
+        _.set(
+          results,
+          [sample, backend, dataType, model, "error"],
+          error.message.substring(0, config.errorMsgMaxLength)
+        );
+      } else {
+        for (let _model of modelNameArray) {
+          _.set(
+            results,
+            [sample, backend, dataType, _model, "error"],
+            error.message.substring(0, config.errorMsgMaxLength)
+          );
+        }
+      }
+    } finally {
       if (page) {
         await util.saveScreenshot(page, screenshotFilename);
       }
-    } finally {
-      if (model) {
-        _.set(results, [sample, backend, dataType, model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
-      } else {
-        for (let _model of modelNameArray) {
-          _.set(results, [sample, backend, dataType, _model, "error"], errorMsg.substring(0, config.errorMsgMaxLength));
-        }
+      if (browser) {
+        await browser.close();
       }
-      if (browser) await browser.close();
-    }
-  };
-
-  // Function to initialize the structure if it doesn't exist
-  const initializePath = (pathArr) => {
-    const result = _.get(results, pathArr, null);
-    if (!result) {
-      _.set(results, pathArr, []);
-    }
-  };
-
-  // Function to add a value to the specified path
-  const addValueToPath = (pathArr, value) => {
-    const result = _.get(results, pathArr, null);
-    if (Array.isArray(result)) {
-      result.push(value);
-      _.set(results, pathArr, result);
     }
   };
 

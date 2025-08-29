@@ -103,6 +103,7 @@
             <thead>
             <tr>
                 <th>Demo</th>
+                <th>Build<br>Time (ms)</th>
                 <th>First<br>(ms)</th>
                 <th>Average<br>(ms)</th>
                 <th>Median<br>(ms)</th>
@@ -115,6 +116,7 @@
                 {% if item[1].average %}
                     <tr>
                         <td>{{ item[0] }}</td>
+                        <td>{{ item[1].buildTime }}</td>
                         <td>{{ item[1].first }}</td>
                         <td>{{ item[1].average }}</td>
                         <td>{{ item[1].median }}</td>
