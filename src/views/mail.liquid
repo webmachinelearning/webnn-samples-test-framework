@@ -129,6 +129,29 @@
         </table>
         <br>
     {% endif %}
+    {% if tokenPerSecondResult != empty %}
+        <table class="number-data">
+            <thead>
+            <tr>
+                <th>Demo</th>
+                <th>Models</th>
+                <th>Tokens<br>Per Second</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in tokenPerSecondResult %}
+                {% if item[1].tokensPerSecond %}
+                    <tr>
+                        <td>{{ item[0] }}</td>
+                        <td>{{ item[1].models | join: ", " }}</td>
+                        <td>{{ item[1].tokensPerSecond }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+        <br>
+    {% endif %}
 {% endif %}
 
 {% if memory %}
