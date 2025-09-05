@@ -6,6 +6,7 @@
     th {
         background-color: rgb(4, 116, 196);
         color: white;
+        text-align: left;
     }
 
     th, td {
@@ -24,12 +25,28 @@
 
 <p>{{ header }}</p>
 
-<p>Test Summary (Failed / Total): {{ failed }} / {{ total }}</p>
+{% if total != 0 %}
+    {% if failed == 0 %}
+        <h3 style="color: green">ALL TESTS PASSED ({{ total }})</h3>
+    {% else %}
+        <p>Test Summary (Failed / Total): {{ failed }} / {{ total }}</p>
+    {% endif %}
+{% else %}
+    <p>No tests were run.</p>
+{% endif %}
 
-{% if sessionCreate %}
+{% if sessionCreate and sessionCreate.error %}
     <h3>WebNN Error in chrome://gpu</h3>
     <ul>
-        {% for line in sessionCreate %}
+        {% for line in sessionCreate.error %}
+            <li>{{ line }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% if ortLibraryPath and ortLibraryPath.error %}
+    <ul>
+        {% for line in ortLibraryPath.error %}
             <li>{{ line }}</li>
         {% endfor %}
     </ul>
@@ -80,6 +97,29 @@
         </tbody>
     </table>
     <br>
+    {% if sessionCreate.modules and sessionCreate.modules != empty %}
+        <table>
+            <thead>
+            <tr>
+                <th>Module</th>
+                <th>Version</th>
+            </tr>
+            <tr>
+                <th colspan="2" style="font-size: 12px">File</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for module in sessionCreate.modules %}
+                <tr>
+                    <td>{{ module[0] }}</td>
+                    <td>{{ module[1].version }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="font-size: 12px; color: gray">{{ module[1].file }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
 {% endif %}
 
 {% if inferenceTimeResult != empty or firstAverageMedianBestResult != empty or tokenPerSecondResult != empty %}

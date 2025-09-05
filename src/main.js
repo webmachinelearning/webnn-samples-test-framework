@@ -8,6 +8,7 @@ const util = require("./utils/util.js");
 const { renderResultsAsHTML, report, scpUpload } = require("./utils/report.js");
 const { program } = require("commander");
 const sessionCreate = require("./cases/session-create.js");
+const ortLibraryPath = require("./cases/ort-library-path.js");
 
 const parseFilter = (filter) => {
   const regexPattern =
@@ -74,12 +75,10 @@ program.action(async ({ config: configPath, filters, browserDir, userDataDir }) 
   };
 
   let failed = false;
-  for (const [name, test] of Object.entries({ sessionCreate })) {
-    try {
-      await test({ config });
-    } catch (error) {
+  for (const [name, test] of Object.entries({ ortLibraryPath, sessionCreate })) {
+    results[name] = await test({ config });
+    if (results[name].error) {
       failed = true;
-      results[name] = { error: error.message.split("\n") };
     }
   }
   if (!failed) {

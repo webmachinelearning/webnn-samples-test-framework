@@ -300,9 +300,18 @@ program
       .choices(["cpu", "gpu", "npu"])
       .default(["cpu", "gpu", "npu"])
   )
-  .addOption(new Option("-e, --backend <backend>", "The backend to use").choices(["ort", "tflite"]).default("ort"))
+  .addOption(
+    new Option("-e, --backend <backend>", "The backend to use")
+      .choices(["ort", "tflite", "openvino-plugin"])
+      .default("ort")
+  )
+  .option(
+    "-p, --onnxruntime-providers-path <path>",
+    "The ONNX Runtime plugin and OpenVINO EP path",
+    "C:\\Program Files\\ort-ov-plugin-for-sample-test"
+  )
   .option("-o, --output <path>", "The output config file path", "config.json")
-  .action(async ({ devices, browser, backend, output }) => {
+  .action(async ({ devices, browser, backend, onnxruntimeProvidersPath, output }) => {
     if (process.platform === "linux" && browser === "edge_canary") {
       console.error("edge_canary is not available on linux.");
       return;
@@ -321,6 +330,14 @@ program
       config.browserArgs.push(
         "--enable-features=WebMachineLearningNeuralNetwork",
         "--disable-features=WebNNDirectML,WebNNOnnxRuntime"
+      );
+    } else if (backend === "openvino-plugin") {
+      console.log(`Using ONNX Runtime and OpenVINO EP path: ${onnxruntimeProvidersPath}`);
+      config.browserArgs.push(
+        "--enable-features=WebNNOnnxRuntime,WebMachineLearningNeuralNetwork",
+        `--webnn-ort-library-path-for-testing=${onnxruntimeProvidersPath}`,
+        `--webnn-ort-ep-library-path-for-testing=OpenVINOExecutionProvider?${onnxruntimeProvidersPath}\\onnxruntime_providers_openvino_plugin.dll`,
+        "--allow-third-party-modules"
       );
     }
 
