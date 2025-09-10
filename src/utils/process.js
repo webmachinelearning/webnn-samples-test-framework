@@ -18,25 +18,10 @@ function processInfo(id) {
     return { error: "Given id is not a number" };
   }
   if (os.platform() === "win32") {
-    let result = childProcess.execSync(`Get-Process -Id ${id} | Format-List *`, {
+    let result = childProcess.execSync(`Get-Process -Id ${id} | ConvertTo-Json -Compress -Depth 10`, {
       shell: "powershell"
     });
-    return result
-      .toString()
-      .split("\r\n")
-      .filter((line) => line.includes(":"))
-      .map((line) => {
-        let tokens = line.split(":");
-        let key = tokens[0].trim();
-        let value = tokens.slice(1).join(":").trim();
-        if (!isNaN(value)) {
-          value = +value;
-        }
-        return { [key]: value };
-      })
-      .reduce((acc, obj) => {
-        return Object.assign(acc, obj);
-      });
+    return JSON.parse(result);
   } else if (os.platform() === "linux") {
     const statusPath = `/proc/${id}/status`;
     if (!fs.existsSync(statusPath)) {
@@ -86,18 +71,14 @@ function processInfo(id) {
 function getRendererProcessInfo(browserProcess) {
   if (os.platform() === "win32") {
     let stdout = childProcess.execSync(
-      `Get-WmiObject -Class Win32_Process -Filter "Name='${browserProcess}'" | Select-Object ProcessId,CommandLine | Format-Table -Wrap -Property *`,
+      `Get-WmiObject -Class Win32_Process -Filter "Name='${browserProcess}'" | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress`,
       { shell: "powershell" }
     );
-    let rendererProcesses = stdout
-      .toString()
-      .split("\r\n")
-      .filter((line) => {
-        return line.includes("--type=renderer") && !line.includes("--extension-process");
+    let rendererProcesses = JSON.parse(stdout)
+      .filter(({ CommandLine }) => {
+        return CommandLine.includes("--type=renderer") && !CommandLine.includes("--extension-process");
       })
-      .map((line) => {
-        return +line.trim().split(" ").slice(0)[0];
-      });
+      .map(({ ProcessId }) => ProcessId);
     if (rendererProcesses.length === 0) {
       return { error: `${browserProcess} is not running` };
     }
@@ -130,18 +111,12 @@ function getRendererProcessInfo(browserProcess) {
 function getGpuProcessInfo(browserProcess) {
   if (os.platform() === "win32") {
     let stdout = childProcess.execSync(
-      `Get-WmiObject -Class Win32_Process -Filter "Name='${browserProcess}'" | Select-Object ProcessId,CommandLine | Format-Table -Wrap -Property *`,
+      `Get-WmiObject -Class Win32_Process -Filter "Name='${browserProcess}'" | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress`,
       { shell: "powershell" }
     );
-    let gpuProcess = stdout
-      .toString()
-      .split("\r\n")
-      .filter((line) => {
-        return line.includes("--type=gpu-process");
-      })
-      .map((line) => {
-        return +line.trim().split(" ").slice(0)[0];
-      });
+    let gpuProcess = JSON.parse(stdout)
+      .filter(({ CommandLine }) => CommandLine.includes("--type=gpu-process"))
+      .map(({ ProcessId }) => ProcessId);
     if (gpuProcess.length === 0) {
       return { error: `${browserProcess} is not running` };
     } else if (gpuProcess.length > 1) {
