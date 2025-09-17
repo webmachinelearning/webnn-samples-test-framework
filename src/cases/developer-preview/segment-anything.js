@@ -81,7 +81,7 @@ async function segmentAnythingTest({ config, backend, dataType, model } = {}) {
   };
 
   let results = {};
-  if (backend && dataType && model) {
+  if (backend && dataType) {
     _.set(results, [sample, backend, dataType], await testExecution(backend, dataType, model));
   } else {
     for (let _backend in config[source][sample]) {
