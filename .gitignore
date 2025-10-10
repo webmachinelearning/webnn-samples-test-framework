@@ -2,6 +2,6 @@ node_modules/
 out/
 .idea/
 .vscode/
-env.json
+env*.json
 package-lock.json
 config*.json

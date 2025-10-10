@@ -3,8 +3,8 @@ const path = require("path");
 
 const _ = require("lodash");
 
-const env = require("../env.json");
 const util = require("./utils/util.js");
+const env = util.getEnv();
 const { renderResultsAsHTML, report, scpUpload } = require("./utils/report.js");
 const { program } = require("commander");
 const sessionCreate = require("./cases/session-create.js");

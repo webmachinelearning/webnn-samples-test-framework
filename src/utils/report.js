@@ -6,8 +6,8 @@ const juice = require("juice");
 const { Liquid } = require("liquidjs");
 const nodemailer = require("nodemailer");
 
-const env = require("../../env.json");
 const util = require("./util.js");
+const env = util.getEnv();
 
 async function renderResultsAsHTML(data) {
   const failuresSamples = [];
