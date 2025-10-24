@@ -64,9 +64,15 @@ program.action(async ({ config: configPath, filters, browserDir, userDataDir }) 
     }
   }
 
+  util.killBrowserProcess(config);
   config.browserAppPath = browserDir ?? config.browserAppPath;
   config.browserUserDataPath = userDataDir ?? config.browserUserDataPath;
-  util.killBrowserProcess(config);
+  // If the user data dir is not overridden by CLI, clean up the default temporary user data dir before the tests
+  if (!(config.browserUserData && config.browserUserDataPath)) {
+    const userDataDir = util.getBrowserPath(config).userDataDir;
+    fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 5000 });
+    fs.mkdirSync(userDataDir, { recursive: true });
+  }
 
   const results = {
     deviceInfo: await util.getDeviceInfo(config),
