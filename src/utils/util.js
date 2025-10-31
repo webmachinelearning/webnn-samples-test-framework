@@ -457,25 +457,24 @@ async function getDeviceInfo(config) {
   return deviceInfo;
 }
 
-// click element if it is enabled
+// click element if it is enabled, wait up to 3 seconds for enabled state
 async function clickElementIfEnabled(page, selector) {
-  // Retrieve element information such as disabled state and title
-  const elementInfo = await page.$eval(selector, (input) => {
-    const parentElement = input.parentElement;
-    const isDisabled = parentElement.classList.contains("disabled");
-    const title = parentElement.getAttribute("title");
-    return { isDisabled, title };
-  });
-
-  // If the element is disabled, throw an error with the title or a default message
-  if (elementInfo.isDisabled) {
-    const errorMessage = elementInfo.title
-      ? `${selector} element is not clickable: ${elementInfo.title}`
+  try {
+    await page.waitForFunction(
+      (selector) => {
+        const el = document.querySelector(selector);
+        return el && el.parentElement && !el.parentElement.classList.contains("disabled");
+      },
+      { timeout: 3000 },
+      selector
+    );
+    await page.click(selector);
+  } catch (error) {
+    const title = await page.$eval(selector, (input) => input.parentElement.getAttribute("title"));
+    const errorMessage = title
+      ? `${selector} element is not clickable: ${title}`
       : `${selector} element is not clickable.`;
     throw new Error(errorMessage);
-  } else {
-    // If it's not disabled, proceed with the click
-    await page.click(selector);
   }
 }
 
