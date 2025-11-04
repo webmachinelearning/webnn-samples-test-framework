@@ -1,4 +1,5 @@
 const util = require("../utils/util.js");
+const processInfo = require("../utils/process.js");
 const pageElement = require("../page-elements/samples");
 
 module.exports = async function ({ config }) {
@@ -13,6 +14,22 @@ module.exports = async function ({ config }) {
       samplePage.waitForSelector(pageElement.handwrittenDigitsBuildTime, { visible: true }),
       util.throwErrorOnElement(samplePage, pageElement.alertWarning)
     ]);
+
+    let result = { modules: {} };
+    if (process.platform === "win32") {
+      const gpuProcessInfo = processInfo.getGpuProcessInfo(util.getBrowserProcess(config));
+      const modules = Object.fromEntries(gpuProcessInfo.Modules?.map((m) => [m.ModuleName, m]) ?? []);
+      for (const name of ["onnxruntime", "onnxruntime_providers_openvino_plugin", "openvino"]) {
+        const module = modules[`${name}.dll`];
+        if (module) {
+          result.modules[name] = {
+            file: module.FileName,
+            version: module.FileVersionInfo.ProductVersion
+          };
+        }
+      }
+    }
+
     const gpuPage = await browser.newPage();
     await gpuPage.goto("chrome://gpu", { waitUntil: "networkidle0" });
     await gpuPage.waitForFunction(() => {
@@ -27,8 +44,11 @@ module.exports = async function ({ config }) {
       .filter((message) => message.includes("[WebNN]"))
       .map((message) => message.split("[WebNN]", 2)[1]);
     if (webnnErrorMessages.length > 0) {
-      throw new Error(webnnErrorMessages.join("\n"));
+      result.error = webnnErrorMessages;
     }
+    return result;
+  } catch (e) {
+    return { error: [e.message] };
   } finally {
     await browser.close();
   }
