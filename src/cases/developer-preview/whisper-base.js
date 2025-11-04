@@ -136,7 +136,7 @@ async function whisperBaseTest({ config, backend, dataType, model } = {}) {
     }
   };
 
-  if (backend && dataType && model) {
+  if (backend && dataType) {
     await testExecution(backend, dataType, model);
   } else {
     for (let _backend in config[source][sample]) {
