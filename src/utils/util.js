@@ -1,7 +1,6 @@
 const fs = require("fs");
 const os = require("os");
 const { spawnSync, execSync } = require("child_process");
-const si = require("systeminformation");
 const dayjs = require("dayjs");
 const path = require("path");
 const puppeteer = require("puppeteer");
@@ -377,8 +376,16 @@ async function getDeviceInfo(config) {
   }
 
   // CPU
-  const cpuData = await si.cpu();
-  deviceInfo["cpuName"] = cpuData.brand;
+  if (process.platform === "win32") {
+    const computerInfo = JSON.parse(execSync(`Get-ComputerInfo | ConvertTo-Json`, { shell: "powershell" }).toString());
+    deviceInfo.cpuName = computerInfo.CsProcessors[0].Name;
+    deviceInfo.installedMemoryGb = computerInfo.CsPhyicallyInstalledMemory / 1024 ** 2;
+  } else {
+    const si = require("systeminformation");
+    const cpuData = await si.cpu();
+    deviceInfo.cpuName = cpuData.brand;
+    deviceInfo.totalMemoryGb = ((await si.mem()).total / 1024 ** 3).toFixed(1);
+  }
 
   // GPU
   try {
