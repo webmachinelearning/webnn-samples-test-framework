@@ -50,7 +50,13 @@ async function noiseSuppressionNsNet2Test({ config, backend, dataType, model } =
       await util.clickElementIfEnabled(page, pageElement[backend]);
 
       await Promise.race([
-        page.waitForSelector(`::-p-xpath(${pageElement.readyText})`, { visible: true }),
+        page.waitForFunction(
+          (selector) => {
+            return document.querySelector(selector).innerText.includes("ready");
+          },
+          {},
+          "#info"
+        ),
         util.throwErrorOnElement(page, pageElement.alertWarning)
       ]);
 

@@ -23,9 +23,10 @@ async function stableDiffusion15Test({ config, backend, dataType, model } = {}) 
     let page;
 
     try {
+      config.timeout *= 3; // Compiling unet is extremely slow
       browser = await util.launchBrowser(config);
       page = (await browser.pages())[0];
-      page.setDefaultTimeout(config["timeout"]);
+      page.setDefaultTimeout(config.timeout);
 
       const urlArguments = config[source][sample]["urlArgs"][backend];
       await page.goto(`${config["developerPreviewBasicUrl"]}${config["developerPreviewUrl"][sample]}${urlArguments}`, {
@@ -85,7 +86,7 @@ async function stableDiffusion15Test({ config, backend, dataType, model } = {}) 
             await page.click(pageElement["generateImageButton"]);
             await util.waitForElementEnabled(page, pageElement["generateImageButton"]);
           })(),
-          util.throwErrorOnElement(page, '#error'),
+          util.throwErrorOnElement(page, "#error"),
           util.throwOnUncaughtException(page)
         ]);
         for (const model of modelNameArray) {
