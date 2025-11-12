@@ -37,7 +37,7 @@ async function objectDetectionTest({ config, backend, dataType, model } = {}) {
       // wait for page text display
       await page.waitForSelector(`::-p-xpath(${pageElement.backendText})`);
       // choose backend and model
-      const elementsToClick = [pageElement[backend], pageElement[dataType], pageElement[model]];
+      const elementsToClick = [`#${backend}`, pageElement[dataType], pageElement[model]];
       for (const selector of elementsToClick) {
         await util.clickElementIfEnabled(page, selector);
       }
