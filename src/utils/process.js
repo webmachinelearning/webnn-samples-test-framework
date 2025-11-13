@@ -115,7 +115,7 @@ function getGpuProcessInfo(browserProcess) {
       { shell: "powershell" }
     );
     let gpuProcess = JSON.parse(stdout)
-      .filter(({ CommandLine }) => CommandLine.includes("--type=gpu-process"))
+      .filter(({ CommandLine }) => CommandLine?.includes("--type=gpu-process"))
       .map(({ ProcessId }) => ProcessId);
     if (gpuProcess.length === 0) {
       return { error: `${browserProcess} is not running` };
