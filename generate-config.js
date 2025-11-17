@@ -366,6 +366,24 @@ program
         "--enable-features=WebMachineLearningNeuralNetwork",
         "--disable-features=WebNNDirectML,WebNNOnnxRuntime"
       );
+
+      const tfliteUnsupportedModels = ["efficientNet", "resNet50V1"];
+      const filterModels = (models) => models.filter((model) => !tfliteUnsupportedModels.includes(model));
+      const nonCpuDevices = devices.filter((device) => device !== "cpu");
+      for (const device of nonCpuDevices) {
+        config.samples["image-classification"][device].fp16 = filterModels(
+          config.samples["image-classification"][device].fp16
+        );
+      }
+      const switchImageClassification = config.samples["switch-sample"]?.samples?.["image-classification"];
+      if (switchImageClassification) {
+        for (const device of nonCpuDevices) {
+          if (switchImageClassification[device]?.fp16) {
+            switchImageClassification[device].fp16 = filterModels(switchImageClassification[device].fp16);
+            if (switchImageClassification[device].fp16.length === 0) delete switchImageClassification[device];
+          }
+        }
+      }
     } else if (backend === "openvino-plugin") {
       console.log(`Using ONNX Runtime and OpenVINO EP path: ${onnxruntimeProvidersPath}`);
       config.browserArgs.push(
