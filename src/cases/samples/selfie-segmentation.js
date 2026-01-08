@@ -26,9 +26,11 @@ module.exports = async function ({ config, backend, dataType, model }) {
       await Promise.race([
         (async function () {
           await page.waitForSelector(`::-p-xpath(${pageElement.backendText})`);
-          await util.clickElementIfEnabled(page, `#${backend}`);
-          await util.clickElementIfEnabled(page, pageElement[dataType]);
-          await util.clickElementIfEnabled(page, `#${model}`);
+          const elementsToClick = [`#${backend}`, pageElement[dataType], `#${model}`];
+          for (const selector of elementsToClick) {
+            await util.clickElementIfEnabled(page, selector);
+            await util.delay(1000);
+          }
           await page.waitForSelector(pageElement.computeTime, { visible: true });
         })(),
         util.throwErrorOnElement(page, pageElement.alertWarning)

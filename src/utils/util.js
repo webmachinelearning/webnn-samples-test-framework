@@ -276,11 +276,10 @@ async function throwErrorOnElement(page, element) {
 }
 
 async function throwOnDevelopmentPreviewError(page, element) {
-  await page.waitForFunction(
-    (selector) => document.querySelector(selector).textContent !== "WebNN supported",
-    {},
-    element
-  );
+  await page.waitForFunction((selector) => {
+    const text = document.querySelector(selector).textContent.trim();
+    return text !== "WebNN" && text !== "WebNN supported";
+  }, element);
   throw Error(await page.$eval(element, (el) => el.textContent));
 }
 
