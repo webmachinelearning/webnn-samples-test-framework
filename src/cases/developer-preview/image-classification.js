@@ -1,239 +1,140 @@
 // Enhance test scenarios by running a sample multiple times on the same page,
 // meaning the page will not be closed after each inference.
 // Using `Image Classification` as an example, the following scenarios are included:
-//    Select one backend and one model, click `classify` then
-//      1. Click `classify` multiple times - repeatInference
-//      2. Change backend or models then click `classify` - switchBackendAndModels
+//   1. Standard test: Select one backend and one model, click `classify`
+//   2. Repeat inference: Click `classify` multiple times in one page
+//   3. Switch backend and models: Switch backend or models then click `classify` in one page
 
-const qs = require("qs");
 const util = require("../../utils/util.js");
+const BaseSample = require("./base-sample.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
-const _ = require("lodash");
 
-async function imageClassificationPreviewTest({ config, backend, dataType, model } = {}) {
-  const source = "developer-preview";
-  const sample = "image-classification";
-  let results = {};
-  const pageElement = pageElementTotal[sample];
+class ImageClassificationBase extends BaseSample {
+  async classify(page, pageElement) {
+    await Promise.race([
+      (async () => {
+        await util.waitForElementEnabled(page, pageElement.classifyButton);
+        await page.click(pageElement.classifyButton);
+        await page.waitForSelector(pageElement.result, { visible: true });
+      })(),
+      util.throwOnDevelopmentPreviewError(page, pageElement.alertWaring)
+    ]);
+    return await this.getPageResults(page, pageElement);
+  }
 
-  const getPageResults = async (page) => {
-    const performanceResults = {
-      median: await page.$eval(pageElement.median, (el) => el.textContent),
-      first: await page.$eval(pageElement.first, (el) => el.textContent),
-      best: await page.$eval(pageElement.best, (el) => el.textContent),
-      average: await page.$eval(pageElement.average, (el) => el.textContent),
-      throughput: (await page.$eval(pageElement.throughput, (el) => el.textContent)).replace("FPS", "").trim()
-    };
-    const imageResults = {
-      label1: await page.$eval(pageElement.label1, (el) => el.textContent),
-      score1: await page.$eval(pageElement.score1, (el) => el.textContent),
-      label2: await page.$eval(pageElement.label2, (el) => el.textContent),
-      score2: await page.$eval(pageElement.score2, (el) => el.textContent),
-      label3: await page.$eval(pageElement.label3, (el) => el.textContent),
-      score3: await page.$eval(pageElement.score3, (el) => el.textContent)
-    };
+  async getPageResults(page, pageElement) {
+    const performanceResults = {};
+    for (const metric of ["median", "first", "best", "average", "throughput"]) {
+      let value = await page.$eval(pageElement[metric], (el) => el.textContent);
+      if (metric === "throughput") value = value.replace("FPS", "").trim();
+      performanceResults[metric] = value;
+    }
+
+    const imageResults = {};
+    for (let i = 1; i <= 3; i++) {
+      for (const key of ["label", "score"]) {
+        imageResults[`${key}${i}`] = await page.$eval(pageElement[`${key}${i}`], (el) => el.textContent);
+      }
+    }
     return { performanceResults, imageResults };
-  };
-
-  const testExecution = async (backend, dataType, model) => {
-    console.log(`${source} ${sample} ${backend} ${model} testing...`);
-    const screenshotFilename = `${source}_${sample}_${backend}_${dataType}_${model}`;
-    let browser;
-    let page;
-
-    try {
-      browser = await util.launchBrowser(config);
-      page = (await browser.pages())[0];
-      page.setDefaultTimeout(config.timeout);
-
-      const urlQuery = qs.stringify({
-        ...config[source][sample].urlArgs[backend],
-        ...config[source][sample].urlArgs[model]
-      });
-      await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}?${urlQuery}`, {
-        waitUntil: "networkidle0"
-      });
-
-      await Promise.race([
-        (async () => {
-          await util.waitForElementEnabled(page, pageElement.classifyButton);
-          await page.click(pageElement.classifyButton);
-          await page.waitForSelector(pageElement.result, { visible: true });
-        })(),
-        util.throwOnDevelopmentPreviewError(page, pageElement.alertWaring)
-      ]);
-
-      const { performanceResults, imageResults } = await getPageResults(page);
-      Object.entries(performanceResults).forEach(([_metric, _value]) => {
-        _.set(results, [sample, backend, dataType, model, _metric], _value);
-      });
-
-      console.log("Test Results: ", performanceResults, imageResults);
-    } catch (error) {
-      _.set(results, [sample, backend, dataType, model, "error"], error.message.substring(0, config.errorMsgMaxLength));
-      console.warn(error.message);
-    } finally {
-      if (page) await util.saveScreenshot(page, screenshotFilename);
-      if (browser) await browser.close();
-    }
-  };
-
-  const repeatInferenceInOnePage = async (backend, dataType, model) => {
-    const type = "repeatInference";
-    const testRounds = 5;
-    console.log(`Repeat Inference in one page ${source} ${sample} ${backend} ${model} testing...`);
-    const screenshotFilename = `${source}_${type}_${sample}_${backend}_${dataType}_${model}`;
-    let browser;
-    let page;
-
-    try {
-      browser = await util.launchBrowser(config);
-      page = (await browser.pages())[0];
-      page.setDefaultTimeout(config.timeout);
-
-      const urlQuery = qs.stringify({
-        ...config[source][sample].urlArgs[backend],
-        ...config[source][sample].urlArgs[model]
-      });
-      await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}?${urlQuery}`, {
-        waitUntil: "networkidle0"
-      });
-
-      for (let i = 0; i < testRounds; i++) {
-        console.log(`round: ${i} testing ...`);
-        await Promise.race([
-          (async () => {
-            await util.waitForElementEnabled(page, pageElement.classifyButton);
-            await page.click(pageElement.classifyButton);
-            await page.waitForSelector(pageElement.result, { visible: true });
-          })(),
-          util.throwOnDevelopmentPreviewError(page, pageElement.alertWaring)
-        ]);
-
-        const { performanceResults, imageResults } = await getPageResults(page);
-        console.log(`Round:${i} test results: `, performanceResults, imageResults);
-
-        if (i === testRounds - 1) {
-          Object.entries(performanceResults).forEach(([_metric, _value]) => {
-            _.set(results, [type + "_" + sample, backend, dataType, model, _metric], _value);
-          });
-        }
-        await util.delay(500);
-      }
-    } catch (error) {
-      _.set(
-        results,
-        [type + "_" + sample, backend, dataType, model, "error"],
-        error.message.substring(0, config.errorMsgMaxLength)
-      );
-      console.warn(error.message);
-    } finally {
-      if (page) await util.saveScreenshot(page, screenshotFilename);
-      if (browser) await browser.close();
-    }
-  };
-
-  const switchBackendAndModels = async () => {
-    const type = "switchBackendNModel";
-    let browser;
-    let page;
-
-    try {
-      browser = await util.launchBrowser(config);
-      page = (await browser.pages())[0];
-      page.setDefaultTimeout(config.timeout);
-      await page.goto(`${config.developerPreviewBasicUrl}${config.developerPreviewUrl[sample]}`, {
-        waitUntil: "networkidle0"
-      });
-
-      for (let _backend in config[source][sample]) {
-        if (![/* no cpu button */ "gpu", "npu"].includes(_backend)) continue;
-        for (let _dataType in config[source][sample][_backend]) {
-          for (let _model of config[source][sample][_backend][_dataType]) {
-            console.log(`${type} ${source} ${sample} ${_backend} ${_dataType} ${_model} testing...`);
-            const screenshotFilename = `${source}_${type}_${sample}_${_backend}_${_dataType}_${_model}`;
-            try {
-              await Promise.race([
-                (async () => {
-                  await page.click(pageElement[_backend]);
-                  await page.click(pageElement[_model]);
-                  await util.waitForElementEnabled(page, pageElement.classifyButton);
-                  await page.click(pageElement.classifyButton);
-                  await page.waitForSelector(pageElement.result, { visible: true });
-                })(),
-                util.throwOnDevelopmentPreviewError(page, pageElement.alertWaring)
-              ]);
-
-              const { performanceResults, imageResults } = await getPageResults(page);
-              Object.entries(performanceResults).forEach(([_metric, _value]) => {
-                _.set(results, [type + "_" + sample, _backend, _dataType, _model, _metric], _value);
-              });
-
-              console.log("Test Results: ", performanceResults, imageResults);
-              await util.delay(500);
-            } catch (error) {
-              _.set(
-                results,
-                [type + "_" + sample, _backend, _dataType, _model, "error"],
-                error.message.substring(0, config.errorMsgMaxLength)
-              );
-              console.warn(error.message);
-            } finally {
-              await util.saveScreenshot(page, screenshotFilename);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      if (page) {
-        await util.saveScreenshot(page, `${source}_$${type}_${sample}}`);
-      }
-      console.warn(`${source} $${type} ${sample}: error occurred during launch browser with puppeteer. Error: `, error);
-      for (let _backend in config[source][sample]) {
-        if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
-        for (let _dataType in config[source][sample][_backend]) {
-          for (let _model of config[source][sample][_backend][_dataType]) {
-            _.set(
-              results,
-              [type + "_" + sample, backend, _dataType, _model, "error"],
-              error.message.substring(0, config.errorMsgMaxLength)
-            );
-          }
-        }
-      }
-    } finally {
-      if (browser) await browser.close();
-    }
-  };
-
-  // 0. loop to open new page for each test
-  if (backend && dataType && model) {
-    await testExecution(backend, dataType, model);
-  } else {
-    for (let _backend in config[source][sample]) {
-      if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
-      for (let _dataType in config[source][sample][_backend]) {
-        for (let _model of config[source][sample][_backend][_dataType]) {
-          await testExecution(_backend, _dataType, _model);
-        }
-      }
-    }
   }
-
-  // 1. loop to open new page for each test but classify multiple times (5 times currently)
-  for (let _backend in config[source][sample]) {
-    if (!["cpu", "gpu", "npu"].includes(_backend)) continue;
-    for (let _dataType in config[source][sample][_backend]) {
-      for (let _model of config[source][sample][_backend][_dataType]) {
-        await repeatInferenceInOnePage(_backend, _dataType, _model);
-      }
-    }
-  }
-
-  // 2. just open one page and loop to switch backends and models
-  await switchBackendAndModels();
-
-  return results;
 }
 
-module.exports = imageClassificationPreviewTest;
+class ImageClassificationStandard extends ImageClassificationBase {
+  constructor(config) {
+    super(config, "image-classification");
+  }
+
+  async run(page, backend, dataType, model) {
+    const pageElement = pageElementTotal[this.sample];
+
+    const { performanceResults, imageResults } = await this.classify(page, pageElement);
+    console.log("Test Results: ", performanceResults, imageResults);
+
+    return performanceResults;
+  }
+
+  async execute(backend, dataType, model) {
+    return await super.execute(backend, dataType, model);
+  }
+}
+
+class ImageClassificationRepeatInference extends ImageClassificationBase {
+  constructor(config) {
+    super(config, "image-classification");
+    this.resultKey = "image-classification-repeat-inference";
+  }
+
+  async run(page, backend, dataType, model) {
+    const pageElement = pageElementTotal[this.sample];
+    const testRounds = 5;
+    const delayMs = 500;
+
+    let lastPerformanceResults = {};
+    for (let i = 0; i < testRounds; i++) {
+      console.log(`round: ${i} testing ...`);
+      const { performanceResults, imageResults } = await this.classify(page, pageElement);
+      console.log(`Round:${i} test results: `, performanceResults, imageResults);
+      lastPerformanceResults = performanceResults;
+      await util.delay(delayMs);
+    }
+
+    return lastPerformanceResults;
+  }
+}
+
+class ImageClassificationSwitchBackendAndModels extends ImageClassificationBase {
+  constructor(config) {
+    super(config, "image-classification");
+    this.resultKey = "image-classification-switch-backend-and-models";
+  }
+
+  async execute(backend, dataType, model) {
+    return super.runCase(backend, dataType, model);
+  }
+
+  async run(page, backend, dataType, model) {
+    const pageElement = pageElementTotal[this.sample];
+
+    let result = {};
+    for (backend of this.config[this.source][this.sample].backends) {
+      await page.click(pageElement[backend]);
+      for (model of this.config[this.source][this.sample].models) {
+        await page.click(pageElement[model]);
+        const { performanceResults, imageResults } = await this.classify(page, pageElement);
+        _.set(result, [this.sample, backend, model], performanceResults);
+        console.log("Test Results: ", performanceResults, imageResults);
+        await util.delay(500);
+      }
+    }
+
+    return result;
+  }
+}
+
+class ImageClassification extends ImageClassificationBase {
+  async execute(backend, dataType, model) {
+    // Step 1: Standard test uses BaseSample.execute
+    const step1 = new ImageClassificationStandard(this.config);
+    // Step 2: Repeat inference in one page (5 rounds + 500ms delay)
+    const step2 = new ImageClassificationRepeatInference(this.config);
+    // Step 3: Switch backend/models on the same page (only meaningful for full suite)
+    const step3 = new ImageClassificationSwitchBackendAndModels(this.config);
+
+    let results = {
+      ...(await step1.execute(backend, dataType, model)),
+      ...(await step2.execute(backend, dataType, model))
+    };
+
+    if (!backend && !dataType && !model) {
+      results = { ...results, ...(await step3.execute()) };
+    }
+
+    return results;
+  }
+}
+
+module.exports = async function ({ config, backend, dataType, model }) {
+  const imageClassification = new ImageClassification(config);
+  return await imageClassification.execute(backend, dataType, model);
+};
