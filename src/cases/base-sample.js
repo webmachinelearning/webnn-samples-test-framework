@@ -81,8 +81,18 @@ class BaseSample {
       }
       return result;
     } catch (error) {
-      console.warn(error.message);
-      return error.message;
+      let errorMessage = error.message;
+      try {
+        const gpuLogMessages = await BaseSample.getGpuLogMessages(browser);
+        const gpuCrashMessages = gpuLogMessages.filter((message) => message.includes("The GPU process crashed!"));
+        if (gpuCrashMessages.length > 0) {
+          errorMessage = errorMessage + "\n" + gpuCrashMessages.join("\n");
+        }
+      } catch (_) {
+        // Ignore errors when checking chrome://gpu
+      }
+      console.warn(errorMessage);
+      return { error: errorMessage };
     } finally {
       if (page) await util.saveScreenshot(page, screenshotFilename);
       if (browser) await browser.close();
@@ -105,6 +115,24 @@ class BaseSample {
    */
   async run(page, backend, dataType, model) {
     throw new Error("run() must be implemented");
+  }
+
+  /**
+   * Open chrome://gpu in a new tab and return all log messages.
+   * @param {import('puppeteer').Browser} browser
+   * @returns {Promise<string[]>}
+   */
+  static async getGpuLogMessages(browser) {
+    const gpuPage = await browser.newPage();
+    await gpuPage.goto("chrome://gpu", { waitUntil: "networkidle0" });
+    await gpuPage.waitForFunction(() => {
+      const infoView = document.querySelector("info-view").shadowRoot;
+      return infoView.querySelector("#content > div:last-child > h3 > span:nth-child(2)").innerText === "Log Messages";
+    });
+    return await gpuPage.evaluate(() => {
+      const infoView = document.querySelector("info-view").shadowRoot;
+      return Array.from(infoView.querySelectorAll("#content > div:last-child > ul > li")).map((el) => el.innerText);
+    });
   }
 }
 

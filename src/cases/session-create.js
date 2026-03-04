@@ -1,6 +1,7 @@
 const util = require("../utils/util.js");
 const processInfo = require("../utils/process.js");
 const pageElement = require("../page-elements/samples");
+const BaseSample = require("./base-sample.js");
 
 module.exports = async function ({ config }) {
   const browser = await util.launchBrowser(config);
@@ -30,16 +31,7 @@ module.exports = async function ({ config }) {
       }
     }
 
-    const gpuPage = await browser.newPage();
-    await gpuPage.goto("chrome://gpu", { waitUntil: "networkidle0" });
-    await gpuPage.waitForFunction(() => {
-      const infoView = document.querySelector("info-view").shadowRoot;
-      return infoView.querySelector("#content > div:last-child > h3 > span:nth-child(2)").innerText === "Log Messages";
-    });
-    const gpuLogMessages = await gpuPage.evaluate(() => {
-      const infoView = document.querySelector("info-view").shadowRoot;
-      return Array.from(infoView.querySelectorAll("#content > div:last-child > ul > li")).map((el) => el.innerText);
-    });
+    const gpuLogMessages = await BaseSample.getGpuLogMessages(browser);
     const webnnErrorMessages = gpuLogMessages
       .filter((message) => message.includes("[WebNN]"))
       .map((message) => message.split("[WebNN]", 2)[1]);

@@ -70,7 +70,7 @@
                     <td>{{ case.variable }}</td>
                     <td>{{ case.models | join: ", " }}</td>
                 {% endif %}
-                <td>{{ case.error }}</td>
+                <td>{{ case.error | split: "\n" | join: "<br>" }}</td>
             </tr>
         {% endfor %}
         </tbody>
