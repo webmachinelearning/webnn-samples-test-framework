@@ -6,10 +6,10 @@
 //   3. Switch backend and models: Switch backend or models then click `classify` in one page
 
 const util = require("../../utils/util.js");
-const BaseSample = require("./base-sample.js");
+const DeveloperPreviewSample = require("./developer-preview-sample.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 
-class ImageClassificationBase extends BaseSample {
+class ImageClassificationBase extends DeveloperPreviewSample {
   async classify(page, pageElement) {
     await Promise.race([
       (async () => {

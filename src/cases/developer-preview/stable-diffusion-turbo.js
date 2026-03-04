@@ -1,5 +1,5 @@
 const util = require("../../utils/util.js");
-const BaseSample = require("./base-sample.js");
+const DeveloperPreviewSample = require("./developer-preview-sample.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 
 async function throwOnErrorLog(page) {
@@ -20,7 +20,7 @@ async function throwOnErrorLog(page) {
   );
 }
 
-class StableDiffusionTurbo extends BaseSample {
+class StableDiffusionTurbo extends DeveloperPreviewSample {
   constructor(config) {
     super(config, "stable-diffusion-turbo");
     this.recordMemory = true;

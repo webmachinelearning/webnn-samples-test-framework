@@ -1,7 +1,7 @@
 const util = require("../../utils/util.js");
-const BaseSample = require("./base-sample.js");
+const DeveloperPreviewSample = require("./developer-preview-sample.js");
 
-class TextGeneration extends BaseSample {
+class TextGeneration extends DeveloperPreviewSample {
   constructor(config) {
     super(config, "text-generation");
     this.config.timeout *= 3;

@@ -1,8 +1,8 @@
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
-const BaseSample = require("./base-sample.js");
+const WebNNSample = require("./webnn-sample.js");
 
-class NotepadTest extends BaseSample {
+class NotepadTest extends WebNNSample {
   constructor(config) {
     super(config, "samples", "notepad");
   }

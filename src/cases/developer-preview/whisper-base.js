@@ -1,9 +1,9 @@
 const util = require("../../utils/util.js");
-const BaseSample = require("./base-sample.js");
+const DeveloperPreviewSample = require("./developer-preview-sample.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 const path = require("path");
 
-class WhisperBase extends BaseSample {
+class WhisperBase extends DeveloperPreviewSample {
   constructor(config) {
     super(config, "whisper-base");
     this.recordMemory = true;

@@ -1,8 +1,8 @@
 const util = require("../../utils/util.js");
-const BaseSample = require("./base-sample.js");
+const DeveloperPreviewSample = require("./developer-preview-sample.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 
-class StableDiffusion15 extends BaseSample {
+class StableDiffusion15 extends DeveloperPreviewSample {
   constructor(config) {
     super(config, "stable-diffusion-1-5");
     this.recordMemory = true;

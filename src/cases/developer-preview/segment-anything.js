@@ -1,8 +1,8 @@
 const util = require("../../utils/util.js");
-const BaseSample = require("./base-sample.js");
+const DeveloperPreviewSample = require("./developer-preview-sample.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 
-class SegmentAnything extends BaseSample {
+class SegmentAnything extends DeveloperPreviewSample {
   constructor(config) {
     super(config, "segment-anything");
   }

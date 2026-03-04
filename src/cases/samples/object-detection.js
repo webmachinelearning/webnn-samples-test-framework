@@ -1,9 +1,9 @@
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
-const BaseSample = require("./base-sample.js");
+const WebNNSample = require("./webnn-sample.js");
 const path = require("path");
 
-class ObjectDetectionTest extends BaseSample {
+class ObjectDetectionTest extends WebNNSample {
   constructor(config) {
     super(config, "samples", "object-detection");
     this.expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas");

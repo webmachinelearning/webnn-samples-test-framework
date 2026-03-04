@@ -1,8 +1,8 @@
-const BaseSample = require("./base-sample.js");
+const WebNNSample = require("./webnn-sample.js");
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 
-class NoiseSuppressionRNNoiseSample extends BaseSample {
+class NoiseSuppressionRNNoiseSample extends WebNNSample {
   constructor(config) {
     super(config, "samples", "noise-suppression-rnnoise");
   }

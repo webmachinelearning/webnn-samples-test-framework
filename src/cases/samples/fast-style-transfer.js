@@ -1,9 +1,9 @@
-const BaseSample = require("./base-sample.js");
+const WebNNSample = require("./webnn-sample.js");
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const path = require("path");
 
-class FastStyleTransferSample extends BaseSample {
+class FastStyleTransferSample extends WebNNSample {
   constructor(config) {
     super(config, "samples", "fast-style-transfer");
     this.expectedCanvas = path.join(path.resolve(__dirname), "../../../assets/canvas/fast-style-transfer");

@@ -1,9 +1,9 @@
-const BaseSample = require("./base-sample.js");
+const WebNNSample = require("./webnn-sample.js");
 const util = require("../../utils/util.js");
 const pageElement = require("../../page-elements/samples.js");
 const path = require("path");
 
-class FacialLandmarkDetectionSample extends BaseSample {
+class FacialLandmarkDetectionSample extends WebNNSample {
   constructor(config) {
     super(config, "samples", "facial-landmark-detection");
     this.models = ["simpleCnn"];

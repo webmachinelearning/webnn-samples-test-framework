@@ -1,16 +1,17 @@
-const util = require("../../utils/util.js");
+const util = require("../utils/util.js");
 const _ = require("lodash");
 
 /**
  * Base class for all sample tests.
  * Provides common functionality for browser management, result handling, and navigation.
+ * Subclasses must implement run() and navigate().
  */
 class BaseSample {
   constructor(config, source, sample) {
     this.config = config;
-    this.sampleConfig = this.config[this.source][this.sample];
     this.source = source;
     this.sample = sample;
+    this.sampleConfig = this.config[this.source][this.sample];
   }
 
   /**
@@ -20,8 +21,9 @@ class BaseSample {
    * @param {string} [model] - Optional model filter
    */
   async execute(backend, dataType, model) {
+    const key = this.resultKey || this.sample;
     if (backend && dataType && model) {
-      return _.set({}, [this.sample, backend, dataType, model], await this.runCase(backend, dataType, model));
+      return _.set({}, [key, backend, dataType, model], await this.runCase(backend, dataType, model));
     } else {
       return await this.runCases();
     }
@@ -31,6 +33,7 @@ class BaseSample {
    * Run all test cases by iterating through config
    */
   async runCases() {
+    const key = this.resultKey || this.sample;
     let results = {};
     for (let backend in this.sampleConfig) {
       if (!["cpu", "gpu", "npu"].includes(backend)) continue;
@@ -38,7 +41,7 @@ class BaseSample {
         for (let model of this.sampleConfig[backend][dataType]) {
           _.merge(
             results,
-            _.set({}, [this.sample, backend, dataType, model], await this.runCase(backend, dataType, model))
+            _.set({}, [key, backend, dataType, model], await this.runCase(backend, dataType, model))
           );
         }
       }
@@ -64,9 +67,19 @@ class BaseSample {
       page = (await browser.pages())[0];
       page.setDefaultTimeout(this.config.timeout);
 
-      const url = `${this.config.samplesBasicUrl}${this.config.samplesUrl[this.sample]}`;
-      await page.goto(url, { waitUntil: "networkidle0" });
-      return await this.run(page, backend, dataType, model);
+      await this.navigate(page, backend, model);
+
+      let result = {};
+      if (typeof this.beforeRun === "function") {
+        const before = await this.beforeRun(page);
+        if (before) result = { ...result, ...before };
+      }
+      result = { ...result, ...(await this.run(page, backend, dataType, model)) };
+      if (typeof this.afterRun === "function") {
+        const after = await this.afterRun(page);
+        if (after) result = { ...result, ...after };
+      }
+      return result;
     } catch (error) {
       console.warn(error.message);
       return error.message;
@@ -74,6 +87,17 @@ class BaseSample {
       if (page) await util.saveScreenshot(page, screenshotFilename);
       if (browser) await browser.close();
     }
+  }
+
+  /**
+   * Navigate to the sample page for a given backend/model.
+   * Must be implemented by subclasses.
+   * @param {import('puppeteer').Page} page
+   * @param {string} backend
+   * @param {string} model
+   */
+  async navigate(page, backend, model) {
+    throw new Error("navigate() must be implemented");
   }
 
   /**
