@@ -41,7 +41,7 @@ class StableDiffusionTurbo extends DeveloperPreviewSample {
 
     // loop test
     let result = {};
-    const rounds = this.config[this.source][this.sample].rounds;
+    const rounds = this.sampleConfig.rounds;
     for (let i = 0; i < rounds; i++) {
       await Promise.race([
         (async () => {
@@ -112,14 +112,12 @@ class StableDiffusionTurbo extends DeveloperPreviewSample {
       }
 
       Object.entries(executionResults).forEach(([_model, _value]) => {
-        if (!model || model === _model) {
-          const modelKey = rounds > 1 ? `${_model}-run-${i + 1}` : _model;
-          result[modelKey] = result[modelKey] || {};
-          result[modelKey].first = Number(_value[0]).toFixed(2);
-          result[modelKey].average = util.calculateAverage(_value);
-          result[modelKey].median = util.getMedianValue(_value);
-          result[modelKey].best = util.getBestValue(_value);
-        }
+        const modelKey = rounds > 1 ? `${_model}-run-${i + 1}` : _model;
+        result[modelKey] = result[modelKey] || {};
+        result[modelKey].first = Number(_value[0]).toFixed(2);
+        result[modelKey].average = util.calculateAverage(_value);
+        result[modelKey].median = util.getMedianValue(_value);
+        result[modelKey].best = util.getBestValue(_value);
       });
 
       console.log(`Load models test results inferenceRound_${i}: `, loadResults);

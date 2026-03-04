@@ -27,8 +27,7 @@ class DeveloperPreviewSample extends BaseSample {
     return {
       privateMemoryRendererBefore:
         rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error,
-      privateMemoryGpuBefore:
-        gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
+      privateMemoryGpuBefore: gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error
     };
   }
 
@@ -40,26 +39,24 @@ class DeveloperPreviewSample extends BaseSample {
     return {
       privateMemoryRendererAfter:
         rendererProcessInfo.PagedMemorySize64 ?? rendererProcessInfo.VmRSSKb ?? rendererProcessInfo.error,
-      privateMemoryGpuAfter:
-        gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error,
+      privateMemoryGpuAfter: gpuProcessInfo.PagedMemorySize64 ?? gpuProcessInfo.VmRSSKb ?? gpuProcessInfo.error,
       privateMemoryRendererPeak:
         rendererProcessInfo.PeakPagedMemorySize64 ?? rendererProcessInfo.VmHWMKb ?? rendererProcessInfo.error,
-      privateMemoryGpuPeak:
-        gpuProcessInfo.PeakPagedMemorySize64 ?? gpuProcessInfo.VmHWMKb ?? gpuProcessInfo.error
+      privateMemoryGpuPeak: gpuProcessInfo.PeakPagedMemorySize64 ?? gpuProcessInfo.VmHWMKb ?? gpuProcessInfo.error
     };
   }
 
   /**
    * Navigate to the sample page for a given backend/model.
-   * dataType is intentionally not part of navigation URL.
+   * Always sets devicetype=backend and model=model, then merges with urlArgs if present.
    */
   async navigate(page, backend, model) {
-    const backendArgs = (this.urlArgs && this.urlArgs[backend]) || {};
-    const modelArgs = (this.urlArgs && this.urlArgs[model]) || {};
-    const urlQuery = qs.stringify({ ...backendArgs, ...modelArgs });
+    const urlArgs = this.sampleConfig.urlArgs || {};
+    const params = { ...urlArgs, devicetype: backend };
+    if (model && model !== "all") params.model = model;
+    const urlQuery = qs.stringify(params);
     const baseUrl = `${this.config.developerPreviewBasicUrl}${this.config.developerPreviewUrl[this.sample]}`;
-    const url = urlQuery ? `${baseUrl}?${urlQuery}` : baseUrl;
-    await page.goto(url, { waitUntil: "networkidle0" });
+    await page.goto(`${baseUrl}?${urlQuery}`, { waitUntil: "networkidle0" });
   }
 }
 

@@ -220,41 +220,27 @@ const ORIGINAL_CONFIG = {
   },
   "developer-preview": {
     "stable-diffusion-1-5": {
-      gpu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
-      npu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
-      rounds: 2,
-      urlArgs: {
-        gpu: "?devicetype=gpu",
-        npu: "?devicetype=npu"
-      }
+      gpu: { fp16: ["all"] },
+      npu: { fp16: ["all"] },
+      rounds: 2
     },
     "stable-diffusion-turbo": {
-      gpu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
-      npu: { fp16: ["textEncoder", "unet", "vaeDecoder", "safetyChecker"] },
-      rounds: 2,
-      urlArgs: {
-        gpu: "?devicetype=gpu",
-        npu: "?devicetype=npu"
-      }
+      gpu: { fp16: ["all"] },
+      npu: { fp16: ["all"] },
+      rounds: 2
     },
     "segment-anything": {
-      gpu: { fp16: ["encoder", "decoder"] },
-      npu: { fp16: ["encoder", "decoder"] },
-      urlArgs: { gpu: "?devicetype=gpu", npu: "?devicetype=npu" },
+      gpu: { fp16: ["all"] },
+      npu: { fp16: ["all"] },
       imageSpot: {
         x: 0.5,
         y: 0.5
       }
     },
     "whisper-base": {
-      cpu: { fp16: ["encoder", "decoder", "decoderKvCache"] },
-      gpu: { fp16: ["encoder", "decoder", "decoderKvCache"] },
-      npu: { fp16: ["encoder", "decoder", "decoderKvCache"] },
-      urlArgs: {
-        cpu: "?devicetype=cpu",
-        gpu: "?devicetype=gpu",
-        npu: "?devicetype=npu"
-      },
+      cpu: { fp16: ["all"] },
+      gpu: { fp16: ["all"] },
+      npu: { fp16: ["all"] },
       examples: [
         {
           name: "audio_01.wav",
@@ -264,17 +250,10 @@ const ORIGINAL_CONFIG = {
       ]
     },
     "image-classification": {
-      cpu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
-      gpu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
-      npu: { fp16: ["mobileNetV2", "resNet50", "efficientNetLite4"] },
-      urlArgs: {
-        cpu: { provider: "webnn", devicetype: "cpu", run: 50 },
-        gpu: { provider: "webnn", devicetype: "gpu", run: 50 },
-        npu: { provider: "webnn", devicetype: "npu", run: 50 },
-        mobileNetV2: { model: "mobilenet-v2" },
-        resNet50: { model: "resnet-50" },
-        efficientNetLite4: { model: "efficientnet-lite4" }
-      }
+      cpu: { fp16: ["mobilenet-v2", "resnet-50", "efficientnet-lite4"] },
+      gpu: { fp16: ["mobilenet-v2", "resnet-50", "efficientnet-lite4"] },
+      npu: { fp16: ["mobilenet-v2", "resnet-50", "efficientnet-lite4"] },
+      urlArgs: { provider: "webnn", run: 50 }
     },
     "text-generation": {
       cases: [

@@ -23,7 +23,11 @@ class BaseSample {
   async execute(backend, dataType, model) {
     const key = this.resultKey || this.sample;
     if (backend && dataType && model) {
-      return _.set({}, [key, backend, dataType, model], await this.runCase(backend, dataType, model));
+      const result = await this.runCase(backend, dataType, model);
+      if (model === "all" && typeof result === "object") {
+        return _.set({}, [key, backend, dataType], result);
+      }
+      return _.set({}, [key, backend, dataType, model], result);
     } else {
       return await this.runCases();
     }
@@ -39,10 +43,12 @@ class BaseSample {
       if (!["cpu", "gpu", "npu"].includes(backend)) continue;
       for (let dataType in this.sampleConfig[backend]) {
         for (let model of this.sampleConfig[backend][dataType]) {
-          _.merge(
-            results,
-            _.set({}, [key, backend, dataType, model], await this.runCase(backend, dataType, model))
-          );
+          const result = await this.runCase(backend, dataType, model);
+          if (model === "all" && typeof result === "object") {
+            _.merge(results, _.set({}, [key, backend, dataType], result));
+          } else {
+            _.merge(results, _.set({}, [key, backend, dataType, model], result));
+          }
         }
       }
     }
