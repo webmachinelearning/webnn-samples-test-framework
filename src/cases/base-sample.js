@@ -68,6 +68,7 @@ class BaseSample {
     const screenshotFilename = `${this.source}_${this.sample}_${backend}_${dataType}_${model}`;
     let browser = null;
     let page = null;
+    let result = {};
     try {
       browser = await util.launchBrowser(this.config);
       page = (await browser.pages())[0];
@@ -75,7 +76,6 @@ class BaseSample {
 
       await this.navigate(page, backend, model);
 
-      let result = {};
       if (typeof this.beforeRun === "function") {
         const before = await this.beforeRun(page);
         if (before) result = { ...result, ...before };
@@ -85,7 +85,6 @@ class BaseSample {
         const after = await this.afterRun(page);
         if (after) result = { ...result, ...after };
       }
-      return result;
     } catch (error) {
       let errorMessage = error.message;
       try {
@@ -98,11 +97,28 @@ class BaseSample {
         // Ignore errors when checking chrome://gpu
       }
       console.warn(errorMessage);
-      return { error: errorMessage };
+      result = { error: errorMessage };
     } finally {
       if (page) await util.saveScreenshot(page, screenshotFilename);
-      if (browser) await browser.close();
+      if (browser) {
+        try {
+          const BROWSER_CLOSE_TIMEOUT = 30000;
+          await Promise.race([
+            browser.close(),
+            util.throwOnTimeout(BROWSER_CLOSE_TIMEOUT, `browser.close() timed out after ${BROWSER_CLOSE_TIMEOUT}ms`)
+          ]);
+        } catch (closeError) {
+          console.warn(closeError.message);
+          if (result.error) {
+            result.error += `\n${closeError.message}`;
+          } else {
+            result.error = closeError.message;
+          }
+          util.killBrowserProcess(this.config);
+        }
+      }
     }
+    return result;
   }
 
   /**
