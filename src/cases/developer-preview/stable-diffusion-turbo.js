@@ -2,24 +2,6 @@ const util = require("../../utils/util.js");
 const DeveloperPreviewSample = require("./developer-preview-sample.js");
 const pageElementTotal = require("../../page-elements/developer-preview.js");
 
-async function throwOnErrorLog(page) {
-  await page.waitForFunction(
-    (selector) => {
-      const element = document.querySelector(selector);
-      if (!element) return false;
-      const lines = element.innerText.split("\n");
-      for (const line of lines) {
-        if (line.includes("[Error]")) {
-          throw Error(line.split("[Error]")[1].trim());
-        }
-      }
-      return false;
-    },
-    {},
-    "#log"
-  );
-}
-
 class StableDiffusionTurbo extends DeveloperPreviewSample {
   constructor(config) {
     super(config, "stable-diffusion-turbo");
@@ -67,7 +49,7 @@ class StableDiffusionTurbo extends DeveloperPreviewSample {
           }
           await util.delay(1000);
         })(),
-        throwOnErrorLog(page),
+        util.throwOnErrorLog(page),
         util.throwOnUncaughtException(page)
       ]);
 

@@ -69,10 +69,8 @@ function compareImages(imagePath1, imagePath2) {
   return similarity;
 }
 
-async function checkImageGeneration(imagePath) {
-  const sdTurboRoot = path.resolve(__dirname, "..", "..", "assets", "canvas", "stable-diffusion-turbo");
-  // save all templates' histogram
-  const histogramFilePath = path.resolve(sdTurboRoot, "histograms.json");
+async function checkImageGeneration(imagePath, sampleName = "stable-diffusion-turbo") {
+  const histogramFilePath = path.resolve(__dirname, "..", "..", "assets", "canvas", sampleName, "histograms.json");
 
   async function getImageData(path) {
     const img = await loadImage(path);

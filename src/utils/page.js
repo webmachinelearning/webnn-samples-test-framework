@@ -48,6 +48,24 @@ async function throwOnUncaughtException(page) {
   });
 }
 
+async function throwOnErrorLog(page) {
+  await page.waitForFunction(
+    (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return false;
+      const lines = element.innerText.split("\n");
+      for (const line of lines) {
+        if (line.includes("[Error]")) {
+          throw Error(line.split("[Error]")[1].trim());
+        }
+      }
+      return false;
+    },
+    {},
+    "#log"
+  );
+}
+
 /**
  * Return a promise that rejects after the specified timeout.
  * Intended to be used with Promise.race() by the caller.
@@ -93,6 +111,7 @@ module.exports = {
   throwErrorOnElement,
   throwOnDevelopmentPreviewError,
   throwOnUncaughtException,
+  throwOnErrorLog,
   throwOnTimeout,
   waitForElementEnabled,
   clickElementIfEnabled
