@@ -28,7 +28,7 @@ async function imageClassificationTest({ config, backend, dataType, model } = {}
       });
 
       await page.waitForSelector(`::-p-xpath(${pageElement.backendText})`);
-      const elementsToClick = [pageElement[backend], pageElement[dataType], pageElement[model]];
+      const elementsToClick = [`#${backend}`, pageElement[dataType], pageElement[model]];
 
       for (const selector of elementsToClick) {
         await util.clickElementIfEnabled(page, selector);
