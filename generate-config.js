@@ -325,7 +325,10 @@ program
 
     const config = { backend, browser, ...filterSamplesWithDevices(ORIGINAL_CONFIG, devices) };
     if (backend === "ort") {
-      config.browserArgs.push("--enable-features=WebMachineLearningNeuralNetwork,WebNNOnnxRuntime");
+      config.browserArgs.push(
+        "--enable-features=WebMachineLearningNeuralNetwork,WebNNOnnxRuntime",
+        "--disable_webnn_for_npu=0"
+      );
     } else if (backend === "tflite") {
       config.browserArgs.push(
         "--enable-features=WebMachineLearningNeuralNetwork",
@@ -337,7 +340,8 @@ program
         "--enable-features=WebNNOnnxRuntime,WebMachineLearningNeuralNetwork",
         `--webnn-ort-library-path-for-testing=${onnxruntimeProvidersPath}`,
         `--webnn-ort-ep-library-path-for-testing=OpenVINOExecutionProvider?${onnxruntimeProvidersPath}\\onnxruntime_providers_openvino_plugin.dll`,
-        "--allow-third-party-modules"
+        "--allow-third-party-modules",
+        "--disable_webnn_for_npu=0"
       );
     }
 

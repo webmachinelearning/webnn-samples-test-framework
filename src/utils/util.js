@@ -313,9 +313,9 @@ async function getNPUInfo() {
     // Currently supports fetching Intel NPU (AI Boost) device information on Windows platforms,
     // other NPU manufacturers support will be added in the future.
     const command = `
-        Get-WmiObject Win32_PnPSignedDriver | 
-        Where-Object { $_.DeviceName -match 'Intel\\(R\\) AI Boost' } | 
-        Select-Object DeviceName, DriverVersion, Manufacturer | 
+        Get-WmiObject Win32_PnPSignedDriver |
+        Where-Object { $_.DeviceName -match 'Intel\\(R\\) (AI Boost|NPU)' } |
+        Select-Object DeviceName, DriverVersion, Manufacturer |
         ConvertTo-Json -Depth 3`;
     const info = execSync(`powershell -Command "${command.replace(/\n+/g, " ")}"`)
       .toString()
