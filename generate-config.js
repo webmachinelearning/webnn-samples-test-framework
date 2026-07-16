@@ -81,7 +81,8 @@ const ORIGINAL_CONFIG = {
     "stable-diffusion-turbo": "/demos/sd-turbo/",
     "segment-anything": "/demos/segment-anything/",
     "whisper-base": "/demos/whisper-base/",
-    "image-classification": "/demos/image-classification/"
+    "image-classification": "/demos/image-classification/",
+    "text-generation": "/demos/text-generation/"
   },
   samples: {
     "face-recognition": {
@@ -274,6 +275,37 @@ const ORIGINAL_CONFIG = {
         resNet50: { model: "resnet-50" },
         efficientNetLite4: { model: "efficientnet-lite4" }
       }
+    },
+    "text-generation": {
+      cases: [
+        {
+          question: "What is the chemical symbol for the element Oxygen? Provide only the symbol.",
+          answer: "O"
+        },
+        {
+          question: "Answer with only the number. What is the square of 15?",
+          answer: "225"
+        },
+        {
+          question: "Please state only the name of the only satellite of the Earth, without the article.",
+          answer: "Moon"
+        },
+        {
+          question: "What is the capital city of the People's Republic of China? Provide only the city name.",
+          answer: "Beijing"
+        },
+        {
+          question: "Please provide only the full name of the proposer of the theory of relativity.",
+          answer: "Albert Einstein"
+        },
+        {
+          question: "List the twelve months of a year in order, separated by commas. No other text.",
+          answer: "January, February, March, April, May, June, July, August, September, October, November, December"
+        }
+      ],
+      cpu: { fp16: ["phi4mini"] },
+      gpu: { fp16: ["phi4mini"] },
+      npu: { fp16: ["phi4mini"] }
     }
   }
 };
