@@ -6,13 +6,21 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 const { createCanvas, Image, loadImage } = require("canvas");
 const prettier = require("prettier");
-const env = require("../../env.json");
+const env = getEnv();
 
 let cliArgs = {};
 let chromePath;
 // test results directory
 const outDir = replacePathString(path.join(path.resolve(__dirname), "../../out"));
 ensureDir(outDir);
+
+function getEnv() {
+  if (process.env.APP_ENV) {
+    return require(`../../env.${process.env.APP_ENV}.json`);
+  } else {
+    return require("../../env.json");
+  }
+}
 
 function ensureDir(relativePath) {
   const absolutePath = path.resolve(relativePath);
@@ -657,5 +665,6 @@ module.exports = {
   getBestValue,
   cliArgs,
   copyFile,
-  checkImageGeneration
+  checkImageGeneration,
+  getEnv
 };
