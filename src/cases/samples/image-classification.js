@@ -32,6 +32,7 @@ async function imageClassificationTest({ config, backend, dataType, model } = {}
 
       for (const selector of elementsToClick) {
         await util.clickElementIfEnabled(page, selector);
+        await util.delay(1000);
       }
 
       // wait for model running results

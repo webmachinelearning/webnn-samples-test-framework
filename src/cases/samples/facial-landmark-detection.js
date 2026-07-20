@@ -41,6 +41,7 @@ async function facialLandmarkDetectionTest({ config, backend, dataType, model } 
       const elementsToClick = [pageElement[backend], pageElement[facialLandmark], pageElement[modelName]];
       for (const selector of elementsToClick) {
         await util.clickElementIfEnabled(page, selector);
+        await util.delay(1000);
       }
 
       // wait for model running results

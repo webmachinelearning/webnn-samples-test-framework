@@ -31,6 +31,7 @@ async function semanticSegmentationTest({ config, backend, dataType, model } = {
       const elementsToClick = [pageElement[backend], pageElement[model]];
       for (const selector of elementsToClick) {
         await util.clickElementIfEnabled(page, selector);
+        await util.delay(1000);
       }
 
       // wait for model running results
@@ -48,7 +49,7 @@ async function semanticSegmentationTest({ config, backend, dataType, model } = {
       let pageResults = {
         loadTime: util.formatTimeResult(loadTime),
         buildTime: util.formatTimeResult(buildTime),
-        inferenceTime: util.formatTimeResult(computeTime),
+        inferenceTime: util.formatTimeResult(computeTime)
       };
       pageResults = util.replaceEmptyData(pageResults);
       _.set(results, [sample, backend, dataType, model, "buildTime"], pageResults.buildTime);
