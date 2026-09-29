@@ -1,5 +1,6 @@
 node_modules/
 out/
+.claude/
 .idea/
 .vscode/
 env*.json

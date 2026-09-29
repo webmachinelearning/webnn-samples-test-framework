@@ -79,6 +79,7 @@ const ORIGINAL_CONFIG = {
   developerPreviewUrl: {
     "stable-diffusion-1-5": "/demos/stable-diffusion-1.5/",
     "stable-diffusion-turbo": "/demos/sd-turbo/",
+    "stable-diffusion-xl-turbo": "/demos/sdxl-turbo/",
     "segment-anything": "/demos/segment-anything/",
     "whisper-base": "/demos/whisper-base/",
     "image-classification": "/demos/image-classification/",
@@ -228,6 +229,10 @@ const ORIGINAL_CONFIG = {
       gpu: { fp16: ["all"] },
       npu: { fp16: ["all"] },
       rounds: 2
+    },
+    "stable-diffusion-xl-turbo": {
+      cpu: { fp16: ["all"] },
+      gpu: { fp16: ["all"] }
     },
     "segment-anything": {
       gpu: { fp16: ["all"] },

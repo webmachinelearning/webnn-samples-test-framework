@@ -78,6 +78,28 @@ const pageElements = {
     imgCanvas2: "#img_canvas_2",
     imgCanvas3: "#img_canvas_3"
   },
+  "stable-diffusion-xl-turbo": {
+    loadModelsButton: "#load",
+    generateImageButton: "#generate",
+    log: "#log",
+    totalData: "#total_data",
+    runTotal: "#runTotal",
+    textEncoderFetch: "#textEncoderFetch",
+    textEncoderCreate: "#textEncoderCreate",
+    textEncoder2Fetch: "#textEncoder2Fetch",
+    textEncoder2Create: "#textEncoder2Create",
+    unetFetch: "#unetFetch",
+    unetCreate: "#unetCreate",
+    vaeFetch: "#vaeFetch",
+    vaeCreate: "#vaeCreate",
+    safetyCheckerFetch: "#scFetch",
+    safetyCheckerCreate: "#scCreate",
+    safetyCheckerRun: "#scRun",
+    imgCanvas0: "#img_canvas_0",
+    imgCanvas1: "#img_canvas_1",
+    imgCanvas2: "#img_canvas_2",
+    imgCanvas3: "#img_canvas_3"
+  },
   "segment-anything": {
     logPanel: "#log",
     progressInfo: "#progress-info",
