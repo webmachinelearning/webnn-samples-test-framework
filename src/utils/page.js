@@ -35,11 +35,18 @@ async function throwErrorOnElement(page, element) {
 }
 
 async function throwOnDevelopmentPreviewError(page, element) {
-  await page.waitForFunction((selector) => {
-    const text = document.querySelector(selector).textContent.trim();
-    return text !== "WebNN" && text !== "WebNN supported";
-  }, element);
-  throw Error(await page.$eval(element, (el) => el.textContent));
+  await Promise.race([
+    page
+      .waitForFunction((selector) => {
+        const text = document.querySelector(selector)?.textContent?.trim();
+        return text && text !== "WebNN" && text !== "WebNN supported";
+      }, element)
+      .then(() => page.$eval(element, (el) => el.textContent))
+      .then((text) => {
+        throw Error(text);
+      }),
+    throwOnUncaughtException(page)
+  ]);
 }
 
 async function throwOnUncaughtException(page) {
