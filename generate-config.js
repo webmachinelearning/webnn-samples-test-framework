@@ -263,7 +263,7 @@ const ORIGINAL_CONFIG = {
     "text-generation": {
       cases: [
         {
-          question: "What is the chemical symbol for the element Oxygen? Provide only the symbol.",
+          question: "What is the chemical symbol for the element Oxygen? Reply with only the single letter symbol and nothing else.",
           answer: "O"
         },
         {
@@ -271,7 +271,7 @@ const ORIGINAL_CONFIG = {
           answer: "225"
         },
         {
-          question: "Please state only the name of the only satellite of the Earth, without the article.",
+          question: "Please state only the name of the only natural satellite of the Earth, without the article.",
           answer: "Moon"
         },
         {
